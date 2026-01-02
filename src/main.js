@@ -1,4 +1,4 @@
-import { connectWallet, disconnectWallet } from './wallet/metamask.js'
+import { addActiveNetwork, connectWallet, disconnectWallet } from './wallet/metamask.js'
 import { CONTRACT_ADDRESSES } from '../config.js'
 import { createContractRenderer } from './ui/contracts'
 import { setJson } from './ui/dom'
@@ -82,6 +82,7 @@ const renderContracts = () => {
 
 const connectButton = document.getElementById('connect-wallet')
 const disconnectButton = document.getElementById('disconnect-wallet')
+const addNetworkButton = document.getElementById('add-network')
 
 const renderWalletDetails = async () => {
   if (!browserProvider || !signer) {
@@ -120,6 +121,14 @@ disconnectButton?.addEventListener('click', async () => {
     browserProvider = null
     signer = null
     await renderWalletDetails()
+  }
+})
+
+addNetworkButton?.addEventListener('click', async () => {
+  try {
+    await addActiveNetwork(connectionStatus.id)
+  } catch (error) {
+    console.error(error)
   }
 })
 

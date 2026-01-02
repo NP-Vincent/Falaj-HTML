@@ -28,6 +28,36 @@ const registerProviderListeners = ethereum => {
   ethereum.on?.('chainChanged', handleProviderUpdate)
 }
 
+export async function addActiveNetwork(statusId) {
+  const statusDiv = document.getElementById(statusId)
+  const networkName = ACTIVE_NETWORK?.name ?? 'network'
+  statusDiv.innerText = `Adding ${networkName} to MetaMask...`
+
+  try {
+    const ethereum = MMSDK.getProvider()
+    if (!ethereum) {
+      throw new Error('MetaMask provider unavailable.')
+    }
+
+    await ethereum.request({
+      method: 'wallet_addEthereumChain',
+      params: [ACTIVE_NETWORK_PARAMS]
+    })
+
+    statusDiv.innerHTML = `<span style="color:green;">Added ${networkName}.</span>`
+  } catch (err) {
+    if (!err.handled) {
+      if (err.code === -32002) {
+        statusDiv.innerHTML =
+          '<span style="color:red;">Request already pending. Check MetaMask.</span>'
+      } else {
+        statusDiv.innerHTML = `<span style="color:red;">${err.message}</span>`
+      }
+    }
+    throw err
+  }
+}
+
 export async function connectWallet(statusId) {
   const statusDiv = document.getElementById(statusId)
   statusDiv.innerText = 'Connecting to MetaMask...'
