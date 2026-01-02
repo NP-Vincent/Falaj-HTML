@@ -20,7 +20,6 @@ const ACTIVE_NETWORK_PARAMS = {
 }
 
 export async function connectWallet(statusId) {
-  const ethereum = MMSDK.getProvider()
   const statusDiv = document.getElementById(statusId)
   statusDiv.innerText = 'Connecting to MetaMask...'
 
@@ -28,6 +27,10 @@ export async function connectWallet(statusId) {
     const accounts = await MMSDK.connect()
     if (!accounts?.length) {
       throw new Error('No accounts returned from MetaMask.')
+    }
+    const ethereum = MMSDK.getProvider()
+    if (!ethereum) {
+      throw new Error('MetaMask provider unavailable after connecting.')
     }
     // MMSDK.connect already exposes the account; no additional eth_accounts
     // request is made to prevent duplicate MetaMask popups
