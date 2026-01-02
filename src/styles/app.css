@@ -86,6 +86,46 @@ header.app-header p {
   margin: 0;
 }
 
+.error-console {
+  background: #fff;
+  border-radius: 18px;
+  padding: 20px;
+  box-shadow: 0 10px 30px rgba(22, 22, 37, 0.08);
+  margin-bottom: 28px;
+}
+
+.error-console__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 12px;
+}
+
+.error-console__header h3 {
+  margin: 0 0 6px;
+  font-size: 16px;
+}
+
+.error-console__actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.error-console__output {
+  background: #111827;
+  color: #f8fafc;
+  padding: 14px;
+  border-radius: 12px;
+  min-height: 120px;
+  max-height: 320px;
+  overflow: auto;
+  margin: 0;
+  font-size: 12px;
+  white-space: pre-wrap;
+}
+
 .contracts {
   display: flex;
   flex-direction: column;
