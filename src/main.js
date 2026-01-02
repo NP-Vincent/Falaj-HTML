@@ -4,7 +4,12 @@ import {
   createReadProvider,
   disconnectWallet
 } from './wallet/metamask.js'
-import { CONTRACT_ADDRESSES } from '../config.js'
+import {
+  CONTRACT_ADDRESSES,
+  DEFAULT_NETWORK_KEY,
+  NETWORKS,
+  WALLET_NAME
+} from '../config.js'
 import { createContractRenderer } from './ui/contracts'
 import { setJson } from './ui/dom'
 import { initializeErrorConsole } from './ui/errorConsole'
@@ -90,6 +95,18 @@ const renderContracts = () => {
 const connectButton = document.getElementById('connect-wallet')
 const disconnectButton = document.getElementById('disconnect-wallet')
 const addNetworkButton = document.getElementById('add-network')
+const walletIntro = document.getElementById('walletIntro')
+
+const ACTIVE_NETWORK = NETWORKS[DEFAULT_NETWORK_KEY]
+const NETWORK_NAME = ACTIVE_NETWORK?.name ?? 'network'
+const WALLET_LABEL = WALLET_NAME ?? 'wallet'
+
+if (walletIntro) {
+  walletIntro.textContent = `Connect with ${WALLET_LABEL} on ${NETWORK_NAME} to interact with the deployed Solidity contracts.`
+}
+if (connectButton) {
+  connectButton.textContent = `Connect ${WALLET_LABEL}`
+}
 
 const renderWalletDetails = async () => {
   if (!browserProvider || !signer) {
