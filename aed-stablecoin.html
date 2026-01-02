@@ -4,6 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>AEDStablecoin | Falaj Contract Console</title>
+    <link rel="stylesheet" href="src/styles/app.css" />
   </head>
   <body data-contract="AEDStablecoin">
     <div class="app-shell">
@@ -12,11 +13,11 @@
           <h1>AEDStablecoin</h1>
           <p>Interact with the AEDStablecoin deployment on Falaj Testnet.</p>
           <nav class="page-nav">
-            <a href="/">All Contracts</a>
-            <a href="/aed-stablecoin.html" aria-current="page">AEDStablecoin</a>
-            <a href="/bond-token.html">BondToken</a>
-            <a href="/dvp-settlement.html">DvPSettlement</a>
-            <a href="/identity-registry.html">IdentityRegistry</a>
+            <a href="index.html">All Contracts</a>
+            <a href="aed-stablecoin.html" aria-current="page">AEDStablecoin</a>
+            <a href="bond-token.html">BondToken</a>
+            <a href="dvp-settlement.html">DvPSettlement</a>
+            <a href="identity-registry.html">IdentityRegistry</a>
           </nav>
         </div>
         <div class="connection-row">
@@ -47,6 +48,7 @@
       <section class="contracts" id="contracts"></section>
     </div>
 
-    <script type="module" src="/src/main.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/ethers@6.13.4/dist/ethers.umd.min.js"></script>
+    <script type="module" src="src/main.js"></script>
   </body>
 </html>

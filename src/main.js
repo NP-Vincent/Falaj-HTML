@@ -1,31 +1,53 @@
-import { ethers } from 'ethers'
-import AEDStablecoin from './abis/AEDStablecoin.json'
-import BondToken from './abis/BondToken.json'
-import DvPSettlement from './abis/DvPSettlement.json'
-import IdentityRegistry from './abis/IdentityRegistry.json'
 import { createContractRenderer } from './ui/contracts'
 import { appKit } from './wallet/appKit'
 import { initializeSubscribers } from './wallet/subscribers'
 import { setJson, setText } from './ui/dom'
-import './styles/app.css'
 
-const contractConfigs = [
-  AEDStablecoin,
-  BondToken,
-  DvPSettlement,
-  IdentityRegistry
-].map(contract => ({
-  id: contract.name,
-  name: contract.name,
-  address: contract.address,
-  abi: contract.abi
-}))
+const { ethers } = globalThis
+
+if (!ethers) {
+  throw new Error('Ethers library failed to load. Check the CDN script tag.')
+}
+
+const contractConfigSources = [
+  { id: 'AEDStablecoin', path: 'src/abis/AEDStablecoin.json' },
+  { id: 'BondToken', path: 'src/abis/BondToken.json' },
+  { id: 'DvPSettlement', path: 'src/abis/DvPSettlement.json' },
+  { id: 'IdentityRegistry', path: 'src/abis/IdentityRegistry.json' }
+]
+
+const loadContractConfigs = async () => {
+  const contracts = await Promise.all(
+    contractConfigSources.map(async source => {
+      const response = await fetch(source.path)
+
+      if (!response.ok) {
+        throw new Error(`Failed to load ${source.path}`)
+      }
+
+      return response.json()
+    })
+  )
+
+  return contracts.map((contract, index) => {
+    const fallbackName = contractConfigSources[index]?.id ?? contract.name
+    const name = contract.name ?? fallbackName
+
+    return {
+      id: name,
+      name,
+      address: contract.address,
+      abi: contract.abi
+    }
+  })
+}
 
 const contractsRoot = document.getElementById('contracts')
 const connectionStatus = document.getElementById('connection-status')
 
 let browserProvider = null
 let signer = null
+let contractConfigs = []
 
 const buildContract = (address, abi) => {
   if (!browserProvider) {
@@ -86,7 +108,6 @@ initializeSubscribers(appKit, {
 })
 
 updateConnectionStatus(appKit.getIsConnectedState())
-renderContracts()
 
 const openModalButton = document.getElementById('open-connect-modal')
 const disconnectButton = document.getElementById('disconnect')
@@ -96,3 +117,16 @@ openModalButton?.addEventListener('click', () => appKit.open())
 disconnectButton?.addEventListener('click', () => {
   appKit.disconnect()
 })
+
+const initializeContracts = async () => {
+  try {
+    contractConfigs = await loadContractConfigs()
+  } catch (error) {
+    console.error(error)
+    contractConfigs = []
+  }
+
+  renderContracts()
+}
+
+initializeContracts()
