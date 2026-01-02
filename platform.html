@@ -173,12 +173,10 @@
     <p class="muted">Addresses must be checksum formatted (0x-prefixed). Fees use basis points (1% = 100 bps). Totals cannot exceed 10,000 bps.</p>
 
     <form id="formUpdateUsdc" data-requires-signer>
-      <h3>Set <span data-currency-symbol>USDC</span> token</h3>
-      <p class="inline-label">Expects the canonical ERC-20 <span data-currency-symbol>USDC</span> address. Changing this will break transfers if set incorrectly.</p>
-      <label><span data-currency-symbol>USDC</span> contract address
-        <input id="usdcAddress" placeholder="0x…" autocomplete="off" required />
-      </label>
-      <button type="submit">Update <span data-currency-symbol>USDC</span></button>
+      <h3>Set <span data-currency-symbol>E‑AED</span> token</h3>
+      <p class="inline-label">Falaj uses the native <span data-currency-symbol>E‑AED</span> token. No ERC‑20 contract address is required.</p>
+      <p class="inline-label">Submitting this confirms the platform is configured for native-token transfers.</p>
+      <button type="submit">Confirm <span data-currency-symbol>E‑AED</span> native token</button>
     </form>
 
     <hr class="section-divider" />
@@ -227,11 +225,11 @@
 
     <form id="formUpdatePricing" data-requires-signer>
       <h3>Listing &amp; view pricing</h3>
-      <p class="inline-label"><span data-currency-symbol>USDC</span> values accept up to 6 decimals. Set duration to <code>0</code> to disable view passes.</p>
-      <label>Listing creation fee (<span data-currency-symbol>USDC</span>)
+      <p class="inline-label"><span data-currency-symbol>E‑AED</span> values use the native token and accept up to 6 decimals. Set duration to <code>0</code> to disable view passes.</p>
+      <label>Listing creation fee (<span data-currency-symbol>E‑AED</span>)
         <input id="listingFee" inputmode="decimal" autocomplete="off" placeholder="0.00" required />
       </label>
-      <label>View pass price (<span data-currency-symbol>USDC</span>)
+      <label>View pass price (<span data-currency-symbol>E‑AED</span>)
         <input id="viewPrice" inputmode="decimal" autocomplete="off" placeholder="0.00" required />
       </label>
       <label>View pass duration (hours)
@@ -339,7 +337,7 @@
   </section>
 
   <footer>
-    r3nt by SQMU. <span data-currency-symbol>USDC</span>. <span data-network-name>Network</span>.
+    r3nt by SQMU. <span data-currency-symbol>E‑AED</span>. <span data-network-name>Network</span>.
   </footer>
 
   <script type="module" src="./dist/js/platform.js"></script>
