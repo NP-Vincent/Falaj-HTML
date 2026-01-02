@@ -1,10 +1,27 @@
 // wallet.js - shared wallet helpers for SQMU widgets
-// This module relies on ethers.js loaded via CDN.
-import MetaMaskSDK from 'https://cdn.jsdelivr.net/npm/@metamask/sdk@0.21.2/dist/browser/es/metamask-sdk.js'
+// This module relies on ethers.js + MetaMask SDK loaded via CDN.
 import { DEFAULT_NETWORK_KEY, NETWORKS } from '../../config.js'
 
-const MMSDK = new MetaMaskSDK.MetaMaskSDK({
-  dappMetadata: { name: 'SQMU Wallet', url: window.location.href },
+const resolveMetaMaskSDK = () => {
+  if (globalThis.MetaMaskSDK?.MetaMaskSDK) {
+    return globalThis.MetaMaskSDK.MetaMaskSDK
+  }
+
+  if (typeof globalThis.MetaMaskSDK === 'function') {
+    return globalThis.MetaMaskSDK
+  }
+
+  return null
+}
+
+const MetaMaskSDKClass = resolveMetaMaskSDK()
+
+if (!MetaMaskSDKClass) {
+  throw new Error('MetaMask SDK failed to load. Check the CDN script tag.')
+}
+
+const MMSDK = new MetaMaskSDKClass({
+  dappMetadata: { name: 'Falaj Wallet', url: window.location.href },
   infuraAPIKey: '822e08935dea4fb48f668ff353ac863a'
 })
 
@@ -131,10 +148,12 @@ export async function disconnectWallet(statusId) {
   const ethereum = MMSDK.getProvider()
   const statusDiv = document.getElementById(statusId)
   try {
-    await ethereum.request({
-      method: 'wallet_revokePermissions',
-      params: [{ eth_accounts: {} }]
-    })
+    if (ethereum?.request) {
+      await ethereum.request({
+        method: 'wallet_revokePermissions',
+        params: [{ eth_accounts: {} }]
+      })
+    }
   } catch (err) {
     console.warn('MetaMask permission revoke failed:', err)
   } finally {
@@ -142,4 +161,14 @@ export async function disconnectWallet(statusId) {
     MMSDK.terminate()
     statusDiv.innerHTML = '<span style="color:orange;">Disconnected</span>'
   }
+}
+
+export const createReadProvider = () => {
+  const { ethers } = globalThis
+  const rpcUrl = ACTIVE_NETWORK?.rpcUrls?.[0]
+  if (!ethers || !rpcUrl) {
+    return null
+  }
+
+  return new ethers.JsonRpcProvider(rpcUrl)
 }
