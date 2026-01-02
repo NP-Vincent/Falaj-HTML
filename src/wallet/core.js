@@ -124,11 +124,11 @@ export async function connectWallet(statusId) {
       chainId = await ethereum.request({ method: 'eth_chainId', params: [] })
     }
 
-    if (!ethers?.BrowserProvider) {
+    if (!ethers?.providers?.Web3Provider) {
       throw new Error('Ethers provider unavailable. Check the CDN script tag.')
     }
 
-    const provider = new ethers.BrowserProvider(ethereum)
+    const provider = new ethers.providers.Web3Provider(ethereum)
     const signer = await provider.getSigner()
 
     setStatus(statusDiv, `Connected to ${ACTIVE_NETWORK?.name ?? 'network'}`, 'green')
@@ -162,5 +162,5 @@ export const createReadProvider = () => {
     return null
   }
 
-  return new ethers.JsonRpcProvider(rpcUrl)
+  return new ethers.providers.JsonRpcProvider(rpcUrl)
 }
