@@ -394,14 +394,14 @@ function interpretError(err) {
 
   if (normalized.includes('circuit breaker')) {
     return {
-      message: `${NETWORK_NAME} network circuit breaker is active. Wait for the sequencer to recover before retrying. (${baseMessage})`,
+      message: `${NETWORK_NAME} RPC circuit breaker is active. Retry shortly or switch RPC endpoints. (${baseMessage})`,
       severity: 'warning',
     };
   }
 
   if (normalized.includes('sequencer is down') || normalized.includes('sequencer down')) {
     return {
-      message: `${NETWORK_NAME} sequencer is currently offline. Retry once it resumes processing transactions. (${baseMessage})`,
+      message: `${NETWORK_NAME} RPC providers are unavailable or restarting. Retry shortly or switch RPC endpoints. (${baseMessage})`,
       severity: 'warning',
     };
   }
