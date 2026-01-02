@@ -57,6 +57,12 @@ const handleWalletError = (statusDiv, err) => {
   setStatus(statusDiv, err?.message ?? 'Wallet request failed.', 'red')
 }
 
+const getInjectedProviderConstructor = () =>
+  ethers?.providers?.Web3Provider ?? ethers?.BrowserProvider
+
+const getReadProviderConstructor = () =>
+  ethers?.providers?.JsonRpcProvider ?? ethers?.JsonRpcProvider
+
 const getRequiredProvider = () => {
   const ethereum = getProvider()
   if (!ethereum) {
@@ -124,11 +130,12 @@ export async function connectWallet(statusId) {
       chainId = await ethereum.request({ method: 'eth_chainId', params: [] })
     }
 
-    if (!ethers?.providers?.Web3Provider) {
+    const InjectedProvider = getInjectedProviderConstructor()
+    if (!InjectedProvider) {
       throw new Error('Ethers provider unavailable. Check the CDN script tag.')
     }
 
-    const provider = new ethers.providers.Web3Provider(ethereum)
+    const provider = new InjectedProvider(ethereum)
     const signer = await provider.getSigner()
 
     setStatus(statusDiv, `Connected to ${ACTIVE_NETWORK?.name ?? 'network'}`, 'green')
@@ -158,9 +165,10 @@ export async function disconnectWallet(statusId) {
 
 export const createReadProvider = () => {
   const rpcUrl = ACTIVE_NETWORK?.rpcUrls?.[0]
-  if (!ethers || !rpcUrl) {
+  const ReadProvider = getReadProviderConstructor()
+  if (!ReadProvider || !rpcUrl) {
     return null
   }
 
-  return new ethers.providers.JsonRpcProvider(rpcUrl)
+  return new ReadProvider(rpcUrl)
 }
