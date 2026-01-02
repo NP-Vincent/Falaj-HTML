@@ -4,6 +4,9 @@ if (!ethersLib) {
 }
 
 import {
+  DEFAULT_NETWORK_KEY,
+  NETWORKS,
+  WALLET_NAME,
   PLATFORM_ADDRESS,
   PLATFORM_ABI,
   LISTING_ABI,
@@ -18,6 +21,11 @@ import { notify, mountNotificationCenter } from './notifications.js';
 import { normalizeCastInputToBytes32 } from './tools.js';
 
 const { BigNumber, constants, utils, providers, Contract } = ethersLib;
+
+const ACTIVE_NETWORK = NETWORKS?.[DEFAULT_NETWORK_KEY] ?? {};
+const NETWORK_NAME = ACTIVE_NETWORK?.name ?? 'network';
+const CURRENCY_SYMBOL = ACTIVE_NETWORK?.currency?.symbol ?? ACTIVE_NETWORK?.currency?.name ?? 'token';
+const WALLET_LABEL = WALLET_NAME ?? 'wallet';
 
 const readProvider = new providers.JsonRpcProvider(RPC_URL);
 const platformRead = new Contract(PLATFORM_ADDRESS, PLATFORM_ABI, readProvider);
@@ -69,8 +77,9 @@ const deregisterSubmitBtn = document.getElementById('deregisterListingSubmit');
 const tokenRefreshBtn = document.getElementById('tokenRefreshBtn');
 const tokenProposalStatusEl = document.getElementById('tokenProposalStatus');
 const tokenProposalListEl = document.getElementById('tokenProposalList');
+const connectionInstructionsEl = document.getElementById('connectionInstructions');
 
-const OWNER_REQUIREMENT_MESSAGE = 'Connect the platform owner wallet to unlock controls.';
+const OWNER_REQUIREMENT_MESSAGE = `Connect the platform owner wallet in ${WALLET_LABEL} to unlock controls.`;
 
 let ownerAddress = null;
 let ownerAddressPromise = null;
@@ -117,6 +126,23 @@ const navBadge = document.querySelector('nav .version-badge[data-version]');
 if (navBadge) {
   navBadge.textContent = `Build ${APP_VERSION}`;
 }
+
+function applyConfigCopy() {
+  document.querySelectorAll('[data-network-name]').forEach((node) => {
+    if (node) node.textContent = NETWORK_NAME;
+  });
+  document.querySelectorAll('[data-currency-symbol]').forEach((node) => {
+    if (node) node.textContent = CURRENCY_SYMBOL;
+  });
+  if (connectBtn) {
+    connectBtn.textContent = `Connect ${WALLET_LABEL}`;
+  }
+  if (connectionInstructionsEl) {
+    connectionInstructionsEl.textContent = `Connect ${WALLET_LABEL} first. The interface will insist on ${NETWORK_NAME}.`;
+  }
+}
+
+applyConfigCopy();
 
 resetDepositContext();
 resetDeactivateContext();
@@ -365,14 +391,14 @@ function interpretError(err) {
 
   if (normalized.includes('circuit breaker')) {
     return {
-      message: `Arbitrum network circuit breaker is active. Wait for the sequencer to recover before retrying. (${baseMessage})`,
+      message: `${NETWORK_NAME} network circuit breaker is active. Wait for the sequencer to recover before retrying. (${baseMessage})`,
       severity: 'warning',
     };
   }
 
   if (normalized.includes('sequencer is down') || normalized.includes('sequencer down')) {
     return {
-      message: `Arbitrum sequencer is currently offline. Retry once it resumes processing transactions. (${baseMessage})`,
+      message: `${NETWORK_NAME} sequencer is currently offline. Retry once it resumes processing transactions. (${baseMessage})`,
       severity: 'warning',
     };
   }
@@ -594,9 +620,9 @@ function renderDepositInfo(context) {
     `Status: ${statusLabel}`,
     `Tenant: ${booking.tenant}`,
     `Range: ${formatTimestamp(booking.start)} → ${formatTimestamp(booking.end)} (${formatDuration(staySeconds)})`,
-    `Deposit held: ${formatUsdc(booking.deposit)} USDC`,
-    `Rent (gross/net): ${formatUsdc(booking.grossRent)} / ${formatUsdc(booking.expectedNetRent)} USDC`,
-    `Rent paid so far: ${formatUsdc(booking.rentPaid)} USDC`,
+    `Deposit held: ${formatUsdc(booking.deposit)} ${CURRENCY_SYMBOL}`,
+    `Rent (gross/net): ${formatUsdc(booking.grossRent)} / ${formatUsdc(booking.expectedNetRent)} ${CURRENCY_SYMBOL}`,
+    `Rent paid so far: ${formatUsdc(booking.rentPaid)} ${CURRENCY_SYMBOL}`,
     `Deposit released: ${depositReleased ? 'Yes' : 'No'}${tenantShareLabel}`,
     pendingLine,
   ];
@@ -757,13 +783,13 @@ function createTokenProposalCard(record) {
   const details = document.createElement('div');
   details.className = 'booking-details';
   details.appendChild(createTokenDetail('Total SQMU', formatSqmu(record.pending.totalSqmu)));
-  details.appendChild(createTokenDetail('Price per SQMU', `${formatUsdc(record.pending.pricePerSqmu)} USDC`));
+  details.appendChild(createTokenDetail('Price per SQMU', `${formatUsdc(record.pending.pricePerSqmu)} ${CURRENCY_SYMBOL}`));
   details.appendChild(createTokenDetail('Platform fee', formatBps(record.pending.feeBps)));
   details.appendChild(createTokenDetail('Cadence', record.pending.periodLabel));
   const proposerText = record.pending.proposerShort || record.pending.proposer || '—';
   details.appendChild(createTokenDetail('Proposer', proposerText, { tooltip: record.pending.proposer || undefined }));
-  details.appendChild(createTokenDetail('Gross rent', `${formatUsdc(record.grossRent)} USDC`));
-  details.appendChild(createTokenDetail('Net rent', `${formatUsdc(record.expectedNetRent)} USDC`));
+  details.appendChild(createTokenDetail('Gross rent', `${formatUsdc(record.grossRent)} ${CURRENCY_SYMBOL}`));
+  details.appendChild(createTokenDetail('Net rent', `${formatUsdc(record.expectedNetRent)} ${CURRENCY_SYMBOL}`));
   card.appendChild(details);
 
   const actions = document.createElement('div');
@@ -1540,7 +1566,7 @@ async function refreshSnapshot() {
     const lines = [
       `Owner:           ${owner}`,
       `Treasury:        ${treasury}`,
-      `USDC:            ${usdc}`,
+      `${CURRENCY_SYMBOL}:            ${usdc}`,
       '',
       'Modules:',
       `  • ListingFactory : ${listingFactory}`,
@@ -1552,8 +1578,8 @@ async function refreshSnapshot() {
       `  • Tenant   : ${formatBps(tenantFeeBps)}`,
       `  • Landlord : ${formatBps(landlordFeeBps)}`,
       '',
-      `Listing creation fee: ${formatUsdc(listingCreationFee)} USDC`,
-      `View pass price     : ${formatUsdc(viewPassPrice)} USDC`,
+      `Listing creation fee: ${formatUsdc(listingCreationFee)} ${CURRENCY_SYMBOL}`,
+      `View pass price     : ${formatUsdc(viewPassPrice)} ${CURRENCY_SYMBOL}`,
       `View pass duration  : ${formatDuration(viewPassDuration)}`,
       '',
       `Listings created    : ${BigNumber.from(listingCount).toString()}`,
@@ -1605,7 +1631,7 @@ function normalizeAddress(value, label, { optional = false } = {}) {
   try {
     return utils.getAddress(trimmed);
   } catch (err) {
-    throw new Error(`${label} must be a valid Ethereum address.`);
+    throw new Error(`${label} must be a valid address.`);
   }
 }
 
@@ -1867,8 +1893,11 @@ function bindForm(form, label, handler) {
   });
 }
 
-bindForm(document.getElementById('formUpdateUsdc'), 'Updating USDC', () => {
-  const address = normalizeAddress(document.getElementById('usdcAddress').value, 'USDC address');
+bindForm(document.getElementById('formUpdateUsdc'), `Updating ${CURRENCY_SYMBOL}`, () => {
+  const address = normalizeAddress(
+    document.getElementById('usdcAddress').value,
+    `${CURRENCY_SYMBOL} address`
+  );
   return async () => platformWrite.setUsdc(address);
 });
 

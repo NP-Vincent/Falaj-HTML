@@ -25,6 +25,7 @@ export const NETWORKS = {
 }
 
 export const DEFAULT_NETWORK_KEY = 'falaj'
+export const WALLET_NAME = 'Core Wallet'
 
 export const CONTRACT_ADDRESSES = {
   AEDStablecoin: '0xa5be895EB6DD499b688AE4bD42Fd78500cE24b0F',
