@@ -1,4 +1,5 @@
 import { connectWallet, disconnectWallet } from '../Metamask_Wallet.js'
+import { CONTRACT_ADDRESSES } from '../config.js'
 import { createContractRenderer } from './ui/contracts'
 import { setJson } from './ui/dom'
 
@@ -35,7 +36,7 @@ const loadContractConfigs = async () => {
     return {
       id: name,
       name,
-      address: contract.address,
+      address: CONTRACT_ADDRESSES[name] ?? contract.address,
       abi: contract.abi
     }
   })
