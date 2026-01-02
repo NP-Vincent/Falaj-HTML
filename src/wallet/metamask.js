@@ -95,10 +95,11 @@ export async function disconnectWallet(statusId) {
       method: 'wallet_revokePermissions',
       params: [{ eth_accounts: {} }]
     })
+  } catch (err) {
+    console.warn('MetaMask permission revoke failed:', err)
+  } finally {
     // Terminate the MetaMask SDK connection so the dapp fully disconnects
     MMSDK.terminate()
     statusDiv.innerHTML = '<span style="color:orange;">Disconnected</span>'
-  } catch (err) {
-    statusDiv.innerHTML = `<span style="color:red;">${err.message}</span>`
   }
 }
