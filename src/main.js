@@ -1,4 +1,4 @@
-import { connectWallet, disconnectWallet } from '../Metamask_Wallet.js'
+import { connectWallet, disconnectWallet } from './wallet/metamask.js'
 import { CONTRACT_ADDRESSES } from '../config.js'
 import { createContractRenderer } from './ui/contracts'
 import { setJson } from './ui/dom'
