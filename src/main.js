@@ -1,7 +1,6 @@
+import { connectWallet, disconnectWallet } from '../Metamask_Wallet.js'
 import { createContractRenderer } from './ui/contracts'
-import { appKit } from './wallet/appKit'
-import { initializeSubscribers } from './wallet/subscribers'
-import { setJson, setText } from './ui/dom'
+import { setJson } from './ui/dom'
 
 const { ethers } = globalThis
 
@@ -77,45 +76,47 @@ const renderContracts = () => {
   })
 }
 
-const updateConnectionStatus = isConnected => {
-  connectionStatus.textContent = isConnected
-    ? 'Connected'
-    : 'Not connected'
+const connectButton = document.getElementById('connect-wallet')
+const disconnectButton = document.getElementById('disconnect-wallet')
+
+const renderWalletDetails = async () => {
+  if (!browserProvider || !signer) {
+    setJson('account-state', null)
+    setJson('network-state', null)
+    return
+  }
+
+  const [address, network] = await Promise.all([
+    signer.getAddress(),
+    browserProvider.getNetwork()
+  ])
+
+  setJson('account-state', { address })
+  setJson('network-state', {
+    chainId: network.chainId?.toString?.() ?? String(network.chainId),
+    name: network.name
+  })
 }
 
-initializeSubscribers(appKit, {
-  onProviders: async providers => {
-    const eip155 = providers?.eip155
-
-    if (eip155) {
-      browserProvider = new ethers.BrowserProvider(eip155)
-      signer = await browserProvider.getSigner()
-    } else {
-      browserProvider = null
-      signer = null
-    }
-  },
-  onAccount: account => {
-    setJson('account-state', account)
-  },
-  onNetwork: network => {
-    setJson('network-state', network)
-  },
-  onState: state => {
-    updateConnectionStatus(appKit.getIsConnectedState())
-    setText('modal-state', state?.open ? 'Open' : 'Closed')
+connectButton?.addEventListener('click', async () => {
+  try {
+    const wallet = await connectWallet(connectionStatus.id)
+    browserProvider = wallet.provider
+    signer = wallet.signer
+    await renderWalletDetails()
+  } catch (error) {
+    console.error(error)
   }
 })
 
-updateConnectionStatus(appKit.getIsConnectedState())
-
-const openModalButton = document.getElementById('open-connect-modal')
-const disconnectButton = document.getElementById('disconnect')
-
-openModalButton?.addEventListener('click', () => appKit.open())
-
-disconnectButton?.addEventListener('click', () => {
-  appKit.disconnect()
+disconnectButton?.addEventListener('click', async () => {
+  try {
+    await disconnectWallet(connectionStatus.id)
+  } finally {
+    browserProvider = null
+    signer = null
+    await renderWalletDetails()
+  }
 })
 
 const initializeContracts = async () => {

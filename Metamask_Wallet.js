@@ -59,8 +59,8 @@ export async function connectWallet(statusId) {
       chainId = await ethereum.request({ method: 'eth_chainId', params: [] });
     }
 
-    const provider = new ethers.providers.Web3Provider(ethereum);
-    const signer = provider.getSigner();
+    const provider = new ethers.BrowserProvider(ethereum);
+    const signer = await provider.getSigner();
 
     statusDiv.innerHTML =
       '<span style="color:green;">Connected to Scroll</span>';

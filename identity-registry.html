@@ -23,9 +23,8 @@
         <div class="connection-row">
           <span id="connection-status">Not connected</span>
           <div class="connection-actions">
-            <appkit-button></appkit-button>
-            <button id="open-connect-modal">Open Connect Modal</button>
-            <button id="disconnect">Disconnect</button>
+            <button id="connect-wallet">Connect Wallet</button>
+            <button id="disconnect-wallet">Disconnect</button>
           </div>
         </div>
       </header>
@@ -39,16 +38,17 @@
           <h3>Network</h3>
           <pre id="network-state"></pre>
         </div>
-        <div class="status-card">
-          <h3>Modal</h3>
-          <pre id="modal-state"></pre>
-        </div>
       </section>
 
       <section class="contracts" id="contracts"></section>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/ethers@6.13.4/dist/ethers.umd.min.js"></script>
+    <script
+      type="module"
+      src="https://cdn.jsdelivr.net/npm/@metamask/sdk@0.21.2/dist/browser/es/metamask-sdk.js"
+    ></script>
+    <script type="module" src="Metamask_Wallet.js"></script>
     <script type="module" src="src/main.js"></script>
   </body>
 </html>
