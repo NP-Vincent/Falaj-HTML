@@ -1,13 +1,14 @@
 {
-  "name": "vanillajs-appkite-core",
+  "name": "falaj-contract-console",
   "private": true,
-  "version": "0.0.1",
+  "version": "0.1.0",
   "scripts": {
     "dev": "vite --port 3011",
     "build": "vite build"
   },
   "dependencies": {
-    "@reown/appkit": "1.8.15"
+    "@reown/appkit": "1.8.15",
+    "ethers": "6.15.0"
   },
   "devDependencies": {
     "vite": "7.2.7"
