@@ -1,4 +1,9 @@
-import { addActiveNetwork, connectWallet, disconnectWallet } from './wallet/metamask.js'
+import {
+  addActiveNetwork,
+  connectWallet,
+  createReadProvider,
+  disconnectWallet
+} from './wallet/metamask.js'
 import { CONTRACT_ADDRESSES } from '../config.js'
 import { createContractRenderer } from './ui/contracts'
 import { setJson } from './ui/dom'
@@ -49,15 +54,17 @@ const connectionStatus = document.getElementById('connection-status')
 let browserProvider = null
 let signer = null
 let contractConfigs = []
+const readProvider = createReadProvider()
 
 initializeErrorConsole()
 
 const buildContract = (address, abi) => {
-  if (!browserProvider) {
-    throw new Error('Connect a wallet to initialize the provider.')
+  const runner = signer ?? browserProvider ?? readProvider
+  if (!runner) {
+    throw new Error('No provider available. Check the RPC configuration.')
   }
 
-  return new ethers.Contract(address, abi, signer ?? browserProvider)
+  return new ethers.Contract(address, abi, runner)
 }
 
 const contractRenderer = createContractRenderer({
