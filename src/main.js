@@ -2,6 +2,7 @@ import { connectWallet, disconnectWallet } from '../Metamask_Wallet.js'
 import { CONTRACT_ADDRESSES } from '../config.js'
 import { createContractRenderer } from './ui/contracts'
 import { setJson } from './ui/dom'
+import { initializeErrorConsole } from './ui/errorConsole'
 
 const { ethers } = globalThis
 
@@ -48,6 +49,8 @@ const connectionStatus = document.getElementById('connection-status')
 let browserProvider = null
 let signer = null
 let contractConfigs = []
+
+initializeErrorConsole()
 
 const buildContract = (address, abi) => {
   if (!browserProvider) {
