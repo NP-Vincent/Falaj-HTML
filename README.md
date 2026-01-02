@@ -1,10 +1,10 @@
 # Falaj Contract Console
 
-A lightweight HTML + JavaScript console for interacting with the Falaj Solidity contracts. The UI uses **Reown AppKit Core** for wallet connection and **ethers.js** for contract calls.
+A lightweight HTML + JavaScript console for interacting with the Falaj Solidity contracts. The UI uses the **MetaMask SDK** for wallet connection and **ethers.js** for contract calls.
 
 ## Features
 
-- Connect with AppKit Core (EIP-155 provider).
+- Connect with the MetaMask SDK (EIP-155 provider).
 - Auto-generated forms for every function in each ABI.
 - Supports read (view/pure) and write (transaction) calls.
 - Contract addresses prefilled from the ABI metadata (editable).
@@ -17,8 +17,8 @@ src/
   contracts/          # Solidity source files
   styles/             # App styles
   ui/                 # DOM helper utilities
-  wallet/             # AppKit initialization + subscriber logic
   main.js             # App entry point
+Metamask_Wallet.js    # MetaMask SDK connection helpers
 index.html
 ```
 
@@ -30,13 +30,7 @@ index.html
    npm install
    ```
 
-2. (Optional) Provide your AppKit project ID:
-
-   ```bash
-   export VITE_PROJECT_ID=your_project_id
-   ```
-
-3. Start the dev server:
+2. Start the dev server:
 
    ```bash
    npm run dev
@@ -49,3 +43,23 @@ Open `http://localhost:3011` to view the interface.
 - Contract forms are generated from the ABI JSON files in `src/abis/`.
 - Use comma-separated values for array inputs.
 - For payable functions, provide an ETH value (in ether units).
+
+## MetaMask SDK Setup
+
+The MetaMask SDK is loaded via CDN in `index.html` and the per-dapp configuration lives in
+`Metamask_Wallet.js`. Update the SDK configuration to match your environment:
+
+- `dappMetadata`: Adjust the name and URL shown in MetaMask.
+- `infuraAPIKey`: Replace with your Infura project key if you want to use your own API key.
+- `SCROLL_PARAMS`: Update the chain settings if you want to target a different network.
+
+## Static Hosting Workflow
+
+1. Build the production bundle:
+
+   ```bash
+   npm run build
+   ```
+
+2. Upload the generated `dist/` directory to your static host (GitHub Pages, Netlify, S3, etc.).
+3. Ensure the host serves `index.html` at the root so the contract console loads properly.
