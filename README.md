@@ -18,7 +18,7 @@ src/
   styles/             # App styles
   ui/                 # DOM helper utilities
   main.js             # App entry point
-Metamask_Wallet.js    # MetaMask SDK connection helpers
+src/wallet/metamask.js # MetaMask SDK connection helpers
 index.html
 ```
 
@@ -47,7 +47,7 @@ Open `http://localhost:3011` to view the interface.
 ## MetaMask SDK Setup
 
 The MetaMask SDK is loaded via CDN in `index.html` and the per-dapp configuration lives in
-`Metamask_Wallet.js`. Update the SDK configuration to match your environment:
+`src/wallet/metamask.js`. Update the SDK configuration to match your environment:
 
 - `dappMetadata`: Adjust the name and URL shown in MetaMask.
 - `infuraAPIKey`: Replace with your Infura project key if you want to use your own API key.
