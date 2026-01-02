@@ -63,3 +63,11 @@ P-Chain Transaction ID of the ConvertSubnetToL1Tx of the L1 this Validator Manag
 2a2DRJK7tbcinhYmjPAQeAo563heAVV4NVpHvU1VukAUH585jA
 
 AVALANCE WEBHOOK SECRET d6f775a9cacc73dce3fc03d75edc3f0fc46a0f218f7b0a8be492bfde399b1f04
+
+
+Network Name: Avalanche Fuji C-Chain
+Chain ID:	43113 (0xA869)
+Currency:  	AVAX
+RPC URL: https://api.avax-test.network/ext/bc/C/rpc
+Explorer: https://subnets-test.avax.network/c-chain
+Faucet
