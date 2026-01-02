@@ -36,6 +36,27 @@ header.app-header p {
   color: #5b6070;
 }
 
+.page-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.page-nav a {
+  text-decoration: none;
+  color: #2b2f3a;
+  font-size: 13px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: #eef1f8;
+}
+
+.page-nav a[aria-current='page'] {
+  background: #2b2f3a;
+  color: #fff;
+}
+
 .status-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
@@ -69,6 +90,14 @@ header.app-header p {
   display: flex;
   flex-direction: column;
   gap: 24px;
+}
+
+.empty-state {
+  background: #fff;
+  border-radius: 14px;
+  padding: 20px;
+  box-shadow: 0 10px 30px rgba(22, 22, 37, 0.08);
+  color: #6a6f80;
 }
 
 .contract-card {
