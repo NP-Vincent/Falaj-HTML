@@ -13,10 +13,9 @@ import {
   REGISTRY_ABI,
   REGISTRY_ADDRESS,
   FACTORY_ABI,
-  RPC_URL,
   APP_VERSION,
 } from './config.js';
-import { connectWallet, disconnectWallet } from './platform-only-metamask-wallet.js';
+import { connectWallet, disconnectWallet } from './platform-only-core-wallet.js';
 import { notify, mountNotificationCenter } from './notifications.js';
 import { normalizeCastInputToBytes32 } from './tools.js';
 
@@ -27,6 +26,10 @@ const NETWORK_NAME = ACTIVE_NETWORK?.name ?? 'network';
 const CURRENCY_SYMBOL = ACTIVE_NETWORK?.currency?.symbol ?? ACTIVE_NETWORK?.currency?.name ?? 'token';
 const WALLET_LABEL = WALLET_NAME ?? 'wallet';
 
+const RPC_URL = ACTIVE_NETWORK?.rpcUrls?.[0];
+if (!RPC_URL) {
+  throw new Error('RPC URL missing for the active network. Update config.js.');
+}
 const readProvider = new providers.JsonRpcProvider(RPC_URL);
 const platformRead = new Contract(PLATFORM_ADDRESS, PLATFORM_ABI, readProvider);
 

@@ -3,7 +3,7 @@ import {
   connectWallet,
   createReadProvider,
   disconnectWallet
-} from './wallet/metamask.js'
+} from './wallet/core.js'
 import {
   CONTRACT_ADDRESSES,
   DEFAULT_NETWORK_KEY,
