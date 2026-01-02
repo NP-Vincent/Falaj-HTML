@@ -99,13 +99,17 @@ const walletIntro = document.getElementById('walletIntro')
 
 const ACTIVE_NETWORK = NETWORKS[DEFAULT_NETWORK_KEY]
 const NETWORK_NAME = ACTIVE_NETWORK?.name ?? 'network'
-const WALLET_LABEL = WALLET_NAME ?? 'wallet'
+const WALLET_LABEL = WALLET_NAME ?? 'MetaMask'
+const METAMASK_LABEL =
+  WALLET_LABEL.toLowerCase() === 'metamask'
+    ? WALLET_LABEL
+    : `${WALLET_LABEL} (MetaMask)`
 
 if (walletIntro) {
-  walletIntro.textContent = `Connect with ${WALLET_LABEL} on ${NETWORK_NAME} to interact with the deployed Solidity contracts.`
+  walletIntro.textContent = `Connect with ${METAMASK_LABEL} on ${NETWORK_NAME} using the MetaMask SDK to interact with the deployed Solidity contracts.`
 }
 if (connectButton) {
-  connectButton.textContent = `Connect ${WALLET_LABEL}`
+  connectButton.textContent = `Connect ${METAMASK_LABEL}`
 }
 
 const renderWalletDetails = async () => {
