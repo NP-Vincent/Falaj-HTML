@@ -10,9 +10,9 @@ import {
   NETWORKS,
   WALLET_NAME
 } from '../config.js'
-import { createContractRenderer } from './ui/contracts'
-import { setJson } from './ui/dom'
-import { initializeErrorConsole } from './ui/errorConsole'
+import { createContractRenderer } from './ui/contracts.js'
+import { setJson } from './ui/dom.js'
+import { initializeErrorConsole } from './ui/errorConsole.js'
 
 const { ethers } = globalThis
 
