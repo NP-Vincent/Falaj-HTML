@@ -1,10 +1,10 @@
 # Falaj Contract Console
 
-A lightweight HTML + JavaScript console for interacting with the Falaj Solidity contracts. The UI uses the **MetaMask SDK** for wallet connection and **ethers.js** for contract calls.
+A lightweight HTML + JavaScript console for interacting with the Falaj Solidity contracts. The UI uses an injected **EIP-1193 wallet provider (Core)** for wallet connection and **ethers.js** for contract calls.
 
 ## Features
 
-- Connect with the MetaMask SDK (EIP-155 provider).
+- Connect with Core or any EIP-1193 compatible wallet provider.
 - Auto-generated forms for every function in each ABI.
 - Supports read (view/pure) and write (transaction) calls.
 - Contract addresses prefilled from the ABI metadata (editable).
@@ -18,7 +18,7 @@ src/
   styles/             # App styles
   ui/                 # DOM helper utilities
   main.js             # App entry point
-src/wallet/metamask.js # MetaMask SDK connection helpers
+src/wallet/core.js # Core/EIP-1193 connection helpers
 index.html
 ```
 
@@ -44,13 +44,10 @@ Open `http://localhost:3011` to view the interface.
 - Use comma-separated values for array inputs.
 - For payable functions, provide an ETH value (in ether units).
 
-## MetaMask SDK Setup
+## Wallet Setup
 
-The MetaMask SDK is loaded via CDN in `index.html` and the per-dapp configuration lives in
-`src/wallet/metamask.js`. Update the SDK configuration to match your environment:
-
-- `dappMetadata`: Adjust the name and URL shown in MetaMask.
-- `infuraAPIKey`: Replace with your Infura project key if you want to use your own API key.
+An injected Core/EIP-1193 provider is expected (for example, the Core browser extension).
+Network configuration is pulled from `config.js` (`NETWORKS[DEFAULT_NETWORK_KEY]`).
 - `SCROLL_PARAMS`: Update the chain settings if you want to target a different network.
 
 ## Static Hosting Workflow
