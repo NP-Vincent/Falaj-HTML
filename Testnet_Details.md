@@ -3,6 +3,9 @@ L1 Deployment Notes
 Falaj Testnet  EVM Chain ID:
 75417
 
+Native Token: 
+E-AED
+
 Blockchain ID:
 H3hnSLUCbiQaY92f34SyiUFCpfiHqm1HkGtig5BDBKKk3ZJYB
 
