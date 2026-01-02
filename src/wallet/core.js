@@ -2,7 +2,18 @@
 // This module relies on an injected EIP-1193 provider (Core or compatible).
 import { DEFAULT_NETWORK_KEY, NETWORKS, WALLET_NAME } from '../../config.js'
 
-const { ethers } = globalThis
+const { ethers, MetaMaskSDK } = globalThis
+
+const DAPP_METADATA = {
+  name: 'Falaj Contract Console',
+  url: globalThis?.location?.origin ?? 'https://falaj-console.local'
+}
+const INFURA_API_KEY = 'YOUR_INFURA_API_KEY'
+const MMSDK = new MetaMaskSDK({
+  dappMetadata: DAPP_METADATA,
+  infuraAPIKey: INFURA_API_KEY
+})
+const metamaskProvider = MMSDK.getProvider()
 
 const ACTIVE_NETWORK = NETWORKS[DEFAULT_NETWORK_KEY]
 const ACTIVE_CHAIN_ID = ACTIVE_NETWORK?.chainId
@@ -15,17 +26,6 @@ const ACTIVE_NETWORK_PARAMS = {
   rpcUrls: ACTIVE_NETWORK?.rpcUrls,
   blockExplorerUrls: ACTIVE_NETWORK?.blockExplorerUrls
 }
-
-const resolveProvider = candidates => candidates.find(provider => provider?.request)
-
-const getProvider = () =>
-  resolveProvider([
-    globalThis.core?.provider,
-    globalThis.core?.ethereum,
-    globalThis.avalanche?.provider,
-    globalThis.avalanche,
-    globalThis.ethereum
-  ]) ?? null
 
 const handleProviderUpdate = () => {
   window.location.reload()
@@ -63,24 +63,13 @@ const getInjectedProviderConstructor = () =>
 const getReadProviderConstructor = () =>
   ethers?.providers?.JsonRpcProvider ?? ethers?.JsonRpcProvider
 
-const getRequiredProvider = () => {
-  const ethereum = getProvider()
-  if (!ethereum) {
-    throw new Error(`${WALLET_LABEL} provider unavailable.`)
-  }
-
-  return ethereum
-}
-
 export async function addActiveNetwork(statusId) {
   const statusDiv = document.getElementById(statusId)
   const networkName = ACTIVE_NETWORK?.name ?? 'network'
   setStatus(statusDiv, `Adding ${networkName} to ${WALLET_LABEL}...`)
 
   try {
-    const ethereum = getRequiredProvider()
-
-    await ethereum.request({
+    await metamaskProvider.request({
       method: 'wallet_addEthereumChain',
       params: [ACTIVE_NETWORK_PARAMS]
     })
@@ -97,29 +86,27 @@ export async function connectWallet(statusId) {
   setStatus(statusDiv, `Connecting to ${WALLET_LABEL}...`)
 
   try {
-    const ethereum = getRequiredProvider()
-
-    const accounts = await ethereum.request({ method: 'eth_requestAccounts', params: [] })
+    const accounts = await MMSDK.connect()
     if (!accounts?.length) {
       throw new Error(`No accounts returned from ${WALLET_LABEL}.`)
     }
 
-    registerProviderListeners(ethereum)
+    registerProviderListeners(metamaskProvider)
 
-    let chainId = await ethereum.request({ method: 'eth_chainId', params: [] })
+    let chainId = await metamaskProvider.request({ method: 'eth_chainId', params: [] })
     if (ACTIVE_CHAIN_ID && chainId !== ACTIVE_CHAIN_ID) {
       try {
-        await ethereum.request({
+        await metamaskProvider.request({
           method: 'wallet_switchEthereumChain',
           params: [{ chainId: ACTIVE_CHAIN_ID }]
         })
       } catch (switchErr) {
         if (switchErr.code === 4902) {
-          await ethereum.request({
+          await metamaskProvider.request({
             method: 'wallet_addEthereumChain',
             params: [ACTIVE_NETWORK_PARAMS]
           })
-          await ethereum.request({
+          await metamaskProvider.request({
             method: 'wallet_switchEthereumChain',
             params: [{ chainId: ACTIVE_CHAIN_ID }]
           })
@@ -127,7 +114,7 @@ export async function connectWallet(statusId) {
           throw switchErr
         }
       }
-      chainId = await ethereum.request({ method: 'eth_chainId', params: [] })
+      chainId = await metamaskProvider.request({ method: 'eth_chainId', params: [] })
     }
 
     const InjectedProvider = getInjectedProviderConstructor()
@@ -135,7 +122,7 @@ export async function connectWallet(statusId) {
       throw new Error('Ethers provider unavailable. Check the CDN script tag.')
     }
 
-    const provider = new InjectedProvider(ethereum)
+    const provider = new InjectedProvider(metamaskProvider)
     const signer = await provider.getSigner()
 
     setStatus(statusDiv, `Connected to ${ACTIVE_NETWORK?.name ?? 'network'}`, 'green')
@@ -147,15 +134,12 @@ export async function connectWallet(statusId) {
 }
 
 export async function disconnectWallet(statusId) {
-  const ethereum = getProvider()
   const statusDiv = document.getElementById(statusId)
   try {
-    if (ethereum?.request) {
-      await ethereum.request({
-        method: 'wallet_revokePermissions',
-        params: [{ eth_accounts: {} }]
-      })
-    }
+    await metamaskProvider.request({
+      method: 'wallet_revokePermissions',
+      params: [{ eth_accounts: {} }]
+    })
   } catch (err) {
     console.warn('Wallet permission revoke failed:', err)
   } finally {
