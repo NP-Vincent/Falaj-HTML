@@ -444,6 +444,22 @@ function formatUsdc(value) {
   return `${negative ? '-' : ''}${units}${fraction ? `.${fraction}` : ''}`;
 }
 
+function formatNativeTokenConfig(value) {
+  const raw = typeof value === 'string' ? value : String(value ?? '');
+  if (!raw) {
+    return `Native ${CURRENCY_SYMBOL} (no contract)`;
+  }
+  try {
+    const normalized = utils.getAddress(raw);
+    if (normalized === constants.AddressZero) {
+      return `Native ${CURRENCY_SYMBOL} (no contract)`;
+    }
+    return normalized;
+  } catch (err) {
+    return raw;
+  }
+}
+
 function formatSqmu(value) {
   try {
     const amount = BigNumber.from(value || 0);
@@ -1565,11 +1581,12 @@ async function refreshSnapshot() {
     setBookingRegistryAddress(bookingRegistry);
 
     const listingImplementationAddress = await loadListingImplementationAddress(listingFactory);
+    const nativeTokenConfig = formatNativeTokenConfig(usdc);
 
     const lines = [
       `Owner:           ${owner}`,
       `Treasury:        ${treasury}`,
-      `${CURRENCY_SYMBOL}:            ${usdc}`,
+      `Native token:    ${nativeTokenConfig}`,
       '',
       'Modules:',
       `  • ListingFactory : ${listingFactory}`,
@@ -1897,11 +1914,7 @@ function bindForm(form, label, handler) {
 }
 
 bindForm(document.getElementById('formUpdateUsdc'), `Updating ${CURRENCY_SYMBOL}`, () => {
-  const address = normalizeAddress(
-    document.getElementById('usdcAddress').value,
-    `${CURRENCY_SYMBOL} address`
-  );
-  return async () => platformWrite.setUsdc(address);
+  return async () => platformWrite.setUsdc(constants.AddressZero);
 });
 
 bindForm(document.getElementById('formUpdateTreasury'), 'Updating treasury', () => {
