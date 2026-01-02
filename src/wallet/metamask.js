@@ -19,6 +19,15 @@ const ACTIVE_NETWORK_PARAMS = {
   blockExplorerUrls: ACTIVE_NETWORK?.blockExplorerUrls
 }
 
+const handleProviderUpdate = () => {
+  window.location.reload()
+}
+
+const registerProviderListeners = ethereum => {
+  ethereum.on?.('accountsChanged', handleProviderUpdate)
+  ethereum.on?.('chainChanged', handleProviderUpdate)
+}
+
 export async function connectWallet(statusId) {
   const statusDiv = document.getElementById(statusId)
   statusDiv.innerText = 'Connecting to MetaMask...'
@@ -32,6 +41,7 @@ export async function connectWallet(statusId) {
     if (!ethereum) {
       throw new Error('MetaMask provider unavailable after connecting.')
     }
+    registerProviderListeners(ethereum)
     // MMSDK.connect already exposes the account; no additional eth_accounts
     // request is made to prevent duplicate MetaMask popups
     let chainId = await ethereum.request({ method: 'eth_chainId', params: [] })
