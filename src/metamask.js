@@ -1,5 +1,6 @@
-import { ethers } from "ethers";
 import { BLOCK_EXPLORER_URL, CHAIN_ID_HEX, RPC_URL } from "./config.js";
+
+const ethers = window.ethers;
 
 const MMSDK = new MetaMaskSDK.MetaMaskSDK({
   dappMetadata: {
