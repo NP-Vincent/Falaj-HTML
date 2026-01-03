@@ -31,13 +31,20 @@ function normalizeAbi(abiData) {
   throw new Error('Invalid AED Stablecoin ABI format.');
 }
 
-const AED_STABLECOIN_ABI = await fetch(AED_STABLECOIN_ABI_URL).then(async (response) => {
+let stablecoinAbi = null;
+
+async function getStablecoinAbi() {
+  if (stablecoinAbi) {
+    return stablecoinAbi;
+  }
+  const response = await fetch(AED_STABLECOIN_ABI_URL);
   if (!response.ok) {
     throw new Error(`Failed to load AED Stablecoin ABI (${response.status})`);
   }
   const abiData = await response.json();
-  return normalizeAbi(abiData);
-});
+  stablecoinAbi = normalizeAbi(abiData);
+  return stablecoinAbi;
+}
 
 // === STATE ===
 let stablecoin = null;
@@ -84,11 +91,14 @@ function parseTokenAmount(value) {
 }
 
 // === WALLET CONNECTION LOGIC ===
-function syncStablecoinWithSigner() {
+async function syncStablecoinWithSigner() {
   const signer = getSigner();
-  stablecoin = signer
-    ? new ethers.Contract(AED_STABLECOIN_ADDRESS, AED_STABLECOIN_ABI, signer)
-    : null;
+  if (!signer) {
+    stablecoin = null;
+    return;
+  }
+  const abi = await getStablecoinAbi();
+  stablecoin = new ethers.Contract(AED_STABLECOIN_ADDRESS, abi, signer);
 }
 
 function handleDisconnectUi() {
@@ -134,7 +144,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       await connectWallet('metamask');
       await switchNetwork(FALAJ_NETWORK);
       await ensureCorrectNetwork(FALAJ_NETWORK);
-      syncStablecoinWithSigner();
+      await syncStablecoinWithSigner();
       await refreshTokenMetadata();
       const balance = await getWalletBalance();
       document.getElementById('disconnect-btn').style.display = '';
@@ -156,7 +166,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       show('Preparing transfer...');
       await switchNetwork(FALAJ_NETWORK);
       await ensureCorrectNetwork(FALAJ_NETWORK);
-      syncStablecoinWithSigner();
+      await syncStablecoinWithSigner();
       await refreshTokenMetadata();
       const to = requireValue(document.getElementById('transfer-to').value.trim(), 'Recipient address');
       const amount = parseTokenAmount(document.getElementById('transfer-amount').value.trim());
@@ -173,7 +183,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       show('Preparing approval...');
       await switchNetwork(FALAJ_NETWORK);
       await ensureCorrectNetwork(FALAJ_NETWORK);
-      syncStablecoinWithSigner();
+      await syncStablecoinWithSigner();
       await refreshTokenMetadata();
       const spender = requireValue(document.getElementById('approve-spender').value.trim(), 'Spender address');
       const amount = parseTokenAmount(document.getElementById('approve-amount').value.trim());
@@ -190,7 +200,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       show('Preparing mint...');
       await switchNetwork(FALAJ_NETWORK);
       await ensureCorrectNetwork(FALAJ_NETWORK);
-      syncStablecoinWithSigner();
+      await syncStablecoinWithSigner();
       await refreshTokenMetadata();
       const to = requireValue(document.getElementById('mint-to').value.trim(), 'Recipient address');
       const amount = parseTokenAmount(document.getElementById('mint-amount').value.trim());
@@ -207,7 +217,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       show('Preparing burn...');
       await switchNetwork(FALAJ_NETWORK);
       await ensureCorrectNetwork(FALAJ_NETWORK);
-      syncStablecoinWithSigner();
+      await syncStablecoinWithSigner();
       await refreshTokenMetadata();
       const from = requireValue(document.getElementById('burn-from').value.trim(), 'From address');
       const amount = parseTokenAmount(document.getElementById('burn-amount').value.trim());
@@ -224,7 +234,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       show('Pausing token...');
       await switchNetwork(FALAJ_NETWORK);
       await ensureCorrectNetwork(FALAJ_NETWORK);
-      syncStablecoinWithSigner();
+      await syncStablecoinWithSigner();
       const tx = await stablecoin.pause();
       const receipt = await tx.wait();
       show(`✅ Token paused\nTx hash: ${receipt.transactionHash}\nExplorer: ${EXPLORER_BASE}`);
@@ -238,7 +248,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       show('Unpausing token...');
       await switchNetwork(FALAJ_NETWORK);
       await ensureCorrectNetwork(FALAJ_NETWORK);
-      syncStablecoinWithSigner();
+      await syncStablecoinWithSigner();
       const tx = await stablecoin.unpause();
       const receipt = await tx.wait();
       show(`✅ Token unpaused\nTx hash: ${receipt.transactionHash}\nExplorer: ${EXPLORER_BASE}`);
@@ -252,7 +262,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       show('Freezing account...');
       await switchNetwork(FALAJ_NETWORK);
       await ensureCorrectNetwork(FALAJ_NETWORK);
-      syncStablecoinWithSigner();
+      await syncStablecoinWithSigner();
       const account = requireValue(document.getElementById('freeze-account').value.trim(), 'Account address');
       const tx = await stablecoin.freezeAccount(account);
       const receipt = await tx.wait();
@@ -267,7 +277,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       show('Unfreezing account...');
       await switchNetwork(FALAJ_NETWORK);
       await ensureCorrectNetwork(FALAJ_NETWORK);
-      syncStablecoinWithSigner();
+      await syncStablecoinWithSigner();
       const account = requireValue(document.getElementById('freeze-account').value.trim(), 'Account address');
       const tx = await stablecoin.unfreezeAccount(account);
       const receipt = await tx.wait();
@@ -282,7 +292,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       show('Preparing emergency transfer...');
       await switchNetwork(FALAJ_NETWORK);
       await ensureCorrectNetwork(FALAJ_NETWORK);
-      syncStablecoinWithSigner();
+      await syncStablecoinWithSigner();
       await refreshTokenMetadata();
       const from = requireValue(document.getElementById('emergency-from').value.trim(), 'From address');
       const to = requireValue(document.getElementById('emergency-to').value.trim(), 'To address');
