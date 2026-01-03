@@ -136,6 +136,15 @@
       IDENTITY_REGISTRY_ABI_URL,
       IDENTITY_REGISTRY_ADDRESS
     } from './config.js';
+    import {
+      connectWallet,
+      disconnectWallet,
+      ensureCorrectNetwork,
+      getSigner,
+      onAccountsChanged,
+      onChainChanged,
+      switchNetwork
+    } from './wallet.js';
 
     const IDENTITY_REGISTRY_ABI = await fetch(IDENTITY_REGISTRY_ABI_URL).then((response) => {
       if (!response.ok) {
@@ -145,8 +154,6 @@
     });
 
     // === STATE ===
-    let provider = null;
-    let signer = null;
     let registry = null;
 
     // === UI UTILS ===
@@ -239,62 +246,18 @@
     }
 
     // === WALLET CONNECTION LOGIC ===
-    async function setupWallet(kind) {
-      if (kind === 'metamask' && window.ethereum) {
-        provider = new ethers.BrowserProvider(window.ethereum);
-        await provider.send('eth_requestAccounts', []);
-        signer = await provider.getSigner();
-        registry = new ethers.Contract(IDENTITY_REGISTRY_ADDRESS, IDENTITY_REGISTRY_ABI, signer);
-        return;
-      }
-      throw new Error('MetaMask not found');
+    function syncRegistryWithSigner() {
+      const signer = getSigner();
+      registry = signer
+        ? new ethers.Contract(IDENTITY_REGISTRY_ADDRESS, IDENTITY_REGISTRY_ABI, signer)
+        : null;
     }
 
-    function disconnectWallet() {
-      provider = null;
-      signer = null;
+    function handleDisconnectUi() {
       registry = null;
       setActionButtonsEnabled(false);
       document.getElementById('disconnect-btn').style.display = 'none';
       show('Wallet disconnected');
-    }
-
-    // === NETWORK SWITCHING ===
-    async function switchNetwork() {
-      if (!window.ethereum) {
-        throw new Error('MetaMask not found');
-      }
-      const hex = ethers.toQuantity(FALAJ_NETWORK.chainId);
-      try {
-        await window.ethereum.request({
-          method: 'wallet_switchEthereumChain',
-          params: [{ chainId: hex }]
-        });
-      } catch (err) {
-        if (err.code === 4902) {
-          await window.ethereum.request({
-            method: 'wallet_addEthereumChain',
-            params: [{ chainId: hex, ...FALAJ_NETWORK }]
-          });
-          await window.ethereum.request({
-            method: 'wallet_switchEthereumChain',
-            params: [{ chainId: hex }]
-          });
-        } else {
-          throw err;
-        }
-      }
-      provider = new ethers.BrowserProvider(window.ethereum);
-      signer = await provider.getSigner();
-      registry = new ethers.Contract(IDENTITY_REGISTRY_ADDRESS, IDENTITY_REGISTRY_ABI, signer);
-    }
-
-    async function ensureCorrectNetwork() {
-      if (!provider) throw new Error('No wallet/provider connected');
-      const network = await provider.getNetwork();
-      if (Number(network.chainId) !== Number(FALAJ_NETWORK.chainId)) {
-        throw new Error(`Your wallet is on the wrong network. Please switch to ${FALAJ_NETWORK.chainName} (${FALAJ_NETWORK.chainId}).`);
-      }
     }
 
     // === MAIN UI HANDLING ===
@@ -305,25 +268,32 @@
       document.getElementById('connect-btn').onclick = async () => {
         show('Connecting...');
         try {
-          await setupWallet('metamask');
-          await switchNetwork();
-          await ensureCorrectNetwork();
+          await connectWallet('metamask');
+          await switchNetwork(FALAJ_NETWORK);
+          await ensureCorrectNetwork(FALAJ_NETWORK);
+          syncRegistryWithSigner();
           document.getElementById('disconnect-btn').style.display = '';
-          document.getElementById('disconnect-btn').onclick = disconnectWallet;
+          document.getElementById('disconnect-btn').onclick = () => {
+            disconnectWallet();
+            handleDisconnectUi();
+          };
+          const signer = getSigner();
           const address = await signer.getAddress();
           show(`Wallet connected to ${FALAJ_NETWORK.chainName}\nAddress: ${address}`);
           setActionButtonsEnabled(true);
         } catch (err) {
           show('Connection or network switch failed:\n' + (err.message || err));
           disconnectWallet();
+          handleDisconnectUi();
         }
       };
 
       document.getElementById('add-participant-btn').onclick = async () => {
         try {
           show('Adding participant...');
-          await switchNetwork();
-          await ensureCorrectNetwork();
+          await switchNetwork(FALAJ_NETWORK);
+          await ensureCorrectNetwork(FALAJ_NETWORK);
+          syncRegistryWithSigner();
           const account = requireValue(document.getElementById('add-account').value.trim(), 'Account address');
           const role = parseRole(document.getElementById('add-role').value.trim());
           const expiry = parseExpiry(document.getElementById('add-expiry').value.trim());
@@ -338,8 +308,9 @@
       document.getElementById('change-role-btn').onclick = async () => {
         try {
           show('Changing role...');
-          await switchNetwork();
-          await ensureCorrectNetwork();
+          await switchNetwork(FALAJ_NETWORK);
+          await ensureCorrectNetwork(FALAJ_NETWORK);
+          syncRegistryWithSigner();
           const account = requireValue(document.getElementById('change-account').value.trim(), 'Account address');
           const role = parseRole(document.getElementById('change-role').value.trim());
           const tx = await registry.changeRole(account, role);
@@ -353,8 +324,9 @@
       document.getElementById('renew-kyc-btn').onclick = async () => {
         try {
           show('Renewing KYC...');
-          await switchNetwork();
-          await ensureCorrectNetwork();
+          await switchNetwork(FALAJ_NETWORK);
+          await ensureCorrectNetwork(FALAJ_NETWORK);
+          syncRegistryWithSigner();
           const account = requireValue(document.getElementById('renew-account').value.trim(), 'Account address');
           const expiry = parseExpiry(document.getElementById('renew-expiry').value.trim());
           const tx = await registry.renewKYC(account, expiry);
@@ -368,8 +340,9 @@
       document.getElementById('remove-participant-btn').onclick = async () => {
         try {
           show('Removing participant...');
-          await switchNetwork();
-          await ensureCorrectNetwork();
+          await switchNetwork(FALAJ_NETWORK);
+          await ensureCorrectNetwork(FALAJ_NETWORK);
+          syncRegistryWithSigner();
           const account = requireValue(document.getElementById('remove-account').value.trim(), 'Account address');
           const tx = await registry.removeParticipant(account);
           const receipt = await tx.wait();
@@ -382,8 +355,9 @@
       document.getElementById('freeze-btn').onclick = async () => {
         try {
           show('Freezing participant...');
-          await switchNetwork();
-          await ensureCorrectNetwork();
+          await switchNetwork(FALAJ_NETWORK);
+          await ensureCorrectNetwork(FALAJ_NETWORK);
+          syncRegistryWithSigner();
           const account = requireValue(document.getElementById('freeze-account').value.trim(), 'Account address');
           const reason = requireValue(document.getElementById('freeze-reason').value.trim(), 'Reason');
           const tx = await registry.freezeAccount(account, reason);
@@ -397,8 +371,9 @@
       document.getElementById('unfreeze-btn').onclick = async () => {
         try {
           show('Unfreezing participant...');
-          await switchNetwork();
-          await ensureCorrectNetwork();
+          await switchNetwork(FALAJ_NETWORK);
+          await ensureCorrectNetwork(FALAJ_NETWORK);
+          syncRegistryWithSigner();
           const account = requireValue(document.getElementById('freeze-account').value.trim(), 'Account address');
           const tx = await registry.unfreezeAccount(account);
           const receipt = await tx.wait();
@@ -411,8 +386,9 @@
       document.getElementById('pause-btn').onclick = async () => {
         try {
           show('Pausing registry...');
-          await switchNetwork();
-          await ensureCorrectNetwork();
+          await switchNetwork(FALAJ_NETWORK);
+          await ensureCorrectNetwork(FALAJ_NETWORK);
+          syncRegistryWithSigner();
           const tx = await registry.pause();
           const receipt = await tx.wait();
           show(`✅ Registry paused\nTx hash: ${receipt.transactionHash}\nExplorer: ${EXPLORER_BASE}`);
@@ -424,8 +400,9 @@
       document.getElementById('unpause-btn').onclick = async () => {
         try {
           show('Unpausing registry...');
-          await switchNetwork();
-          await ensureCorrectNetwork();
+          await switchNetwork(FALAJ_NETWORK);
+          await ensureCorrectNetwork(FALAJ_NETWORK);
+          syncRegistryWithSigner();
           const tx = await registry.unpause();
           const receipt = await tx.wait();
           show(`✅ Registry unpaused\nTx hash: ${receipt.transactionHash}\nExplorer: ${EXPLORER_BASE}`);
@@ -437,8 +414,9 @@
       document.getElementById('precompile-btn').onclick = async () => {
         try {
           show('Updating precompile sync...');
-          await switchNetwork();
-          await ensureCorrectNetwork();
+          await switchNetwork(FALAJ_NETWORK);
+          await ensureCorrectNetwork(FALAJ_NETWORK);
+          syncRegistryWithSigner();
           const enabled = document.getElementById('precompile-enabled').value === 'true';
           const tx = await registry.setPrecompileSync(enabled);
           const receipt = await tx.wait();
@@ -451,8 +429,9 @@
       document.getElementById('lookup-btn').onclick = async () => {
         try {
           show('Fetching participant...');
-          await switchNetwork();
-          await ensureCorrectNetwork();
+          await switchNetwork(FALAJ_NETWORK);
+          await ensureCorrectNetwork(FALAJ_NETWORK);
+          syncRegistryWithSigner();
           const account = requireValue(document.getElementById('lookup-account').value.trim(), 'Account address');
           const participant = await registry.getParticipant(account);
           show(
@@ -470,8 +449,9 @@
       document.getElementById('current-role-btn').onclick = async () => {
         try {
           show('Fetching current role...');
-          await switchNetwork();
-          await ensureCorrectNetwork();
+          await switchNetwork(FALAJ_NETWORK);
+          await ensureCorrectNetwork(FALAJ_NETWORK);
+          syncRegistryWithSigner();
           const account = requireValue(document.getElementById('current-role-account').value.trim(), 'Account address');
           const role = await registry.participantRole(account);
           show(`Current role for ${account}\nRole: ${formatRole(role)}`);
@@ -483,8 +463,9 @@
       document.getElementById('check-role-btn').onclick = async () => {
         try {
           show('Checking role...');
-          await switchNetwork();
-          await ensureCorrectNetwork();
+          await switchNetwork(FALAJ_NETWORK);
+          await ensureCorrectNetwork(FALAJ_NETWORK);
+          syncRegistryWithSigner();
           const account = requireValue(document.getElementById('check-role-account').value.trim(), 'Account address');
           const roleValue = parseRole(document.getElementById('check-role-value').value.trim());
           const hasRole = await registry.hasParticipantRole(account, roleValue);
@@ -497,8 +478,9 @@
       document.getElementById('allowed-btn').onclick = async () => {
         try {
           show('Checking allowlist...');
-          await switchNetwork();
-          await ensureCorrectNetwork();
+          await switchNetwork(FALAJ_NETWORK);
+          await ensureCorrectNetwork(FALAJ_NETWORK);
+          syncRegistryWithSigner();
           const account = requireValue(document.getElementById('allowed-account').value.trim(), 'Account address');
           const allowed = await registry.isAllowedToTransact(account);
           show(`Allowed to transact for ${account}\nAllowed: ${allowed}`);
@@ -510,8 +492,9 @@
       document.getElementById('state-btn').onclick = async () => {
         try {
           show('Fetching participant state...');
-          await switchNetwork();
-          await ensureCorrectNetwork();
+          await switchNetwork(FALAJ_NETWORK);
+          await ensureCorrectNetwork(FALAJ_NETWORK);
+          syncRegistryWithSigner();
           const account = requireValue(document.getElementById('state-account').value.trim(), 'Account address');
           const [whitelisted, role, expiry, frozen, allowed] = await Promise.all([
             registry.isWhitelisted(account),
@@ -538,8 +521,9 @@
       document.getElementById('participants-btn').onclick = async () => {
         try {
           show('Fetching participants...');
-          await switchNetwork();
-          await ensureCorrectNetwork();
+          await switchNetwork(FALAJ_NETWORK);
+          await ensureCorrectNetwork(FALAJ_NETWORK);
+          syncRegistryWithSigner();
           const offset = parsePagination(document.getElementById('participants-offset').value.trim(), 'Offset');
           const limit = parsePagination(document.getElementById('participants-limit').value.trim(), 'Limit');
           const [participants, total] = await Promise.all([
@@ -558,7 +542,23 @@
       };
 
       // Disconnect
-      document.getElementById('disconnect-btn').onclick = disconnectWallet;
+      document.getElementById('disconnect-btn').onclick = () => {
+        disconnectWallet();
+        handleDisconnectUi();
+      };
+
+      onAccountsChanged((accounts) => {
+        if (!accounts || accounts.length === 0) {
+          disconnectWallet();
+          handleDisconnectUi();
+        }
+      });
+
+      onChainChanged(() => {
+        disconnectWallet();
+        handleDisconnectUi();
+        show('Network changed. Please reconnect your wallet.');
+      });
     });
   </script>
 </body>

@@ -97,6 +97,15 @@
       EXPLORER_BASE,
       FALAJ_NETWORK
     } from './config.js';
+    import {
+      connectWallet,
+      disconnectWallet,
+      ensureCorrectNetwork,
+      getSigner,
+      onAccountsChanged,
+      onChainChanged,
+      switchNetwork
+    } from './wallet.js';
 
     const AED_STABLECOIN_ABI = await fetch(AED_STABLECOIN_ABI_URL).then((response) => {
       if (!response.ok) {
@@ -106,9 +115,6 @@
     });
 
     // === STATE ===
-    let provider = null;
-    let signer = null;
-    let currentWallet = null;
     let stablecoin = null;
     let tokenDecimals = 18;
     let tokenSymbol = 'AED';
@@ -153,67 +159,22 @@
     }
 
     // === WALLET CONNECTION LOGIC ===
-    async function setupWallet(kind) {
-      if (kind === 'metamask' && window.ethereum) {
-        provider = new ethers.BrowserProvider(window.ethereum);
-        await provider.send('eth_requestAccounts', []);
-        signer = await provider.getSigner();
-        stablecoin = new ethers.Contract(AED_STABLECOIN_ADDRESS, AED_STABLECOIN_ABI, signer);
-        currentWallet = 'metamask';
-        return;
-      }
-      throw new Error('MetaMask not found');
+    function syncStablecoinWithSigner() {
+      const signer = getSigner();
+      stablecoin = signer
+        ? new ethers.Contract(AED_STABLECOIN_ADDRESS, AED_STABLECOIN_ABI, signer)
+        : null;
     }
 
-    function disconnectWallet() {
-      provider = null;
-      signer = null;
-      currentWallet = null;
+    function handleDisconnectUi() {
       stablecoin = null;
       setActionButtonsEnabled(false);
       document.getElementById('disconnect-btn').style.display = 'none';
       show('Wallet disconnected');
     }
 
-    // === NETWORK SWITCHING ===
-    async function switchNetwork() {
-      if (!window.ethereum) {
-        throw new Error('MetaMask not found');
-      }
-      const hex = ethers.toQuantity(FALAJ_NETWORK.chainId);
-      try {
-        await window.ethereum.request({
-          method: 'wallet_switchEthereumChain',
-          params: [{ chainId: hex }]
-        });
-      } catch (err) {
-        if (err.code === 4902) {
-          await window.ethereum.request({
-            method: 'wallet_addEthereumChain',
-            params: [{ chainId: hex, ...FALAJ_NETWORK }]
-          });
-          await window.ethereum.request({
-            method: 'wallet_switchEthereumChain',
-            params: [{ chainId: hex }]
-          });
-        } else {
-          throw err;
-        }
-      }
-      provider = new ethers.BrowserProvider(window.ethereum);
-      signer = await provider.getSigner();
-      stablecoin = new ethers.Contract(AED_STABLECOIN_ADDRESS, AED_STABLECOIN_ABI, signer);
-    }
-
-    async function ensureCorrectNetwork() {
-      if (!provider) throw new Error('No wallet/provider connected');
-      const network = await provider.getNetwork();
-      if (Number(network.chainId) !== Number(FALAJ_NETWORK.chainId)) {
-        throw new Error(`Your wallet is on the wrong network. Please switch to ${FALAJ_NETWORK.chainName} (${FALAJ_NETWORK.chainId}).`);
-      }
-    }
-
     async function refreshTokenMetadata() {
+      const signer = getSigner();
       if (!stablecoin || !signer) return;
       const [decimals, symbol] = await Promise.all([
         stablecoin.decimals(),
@@ -224,6 +185,7 @@
     }
 
     async function getWalletBalance() {
+      const signer = getSigner();
       if (!stablecoin || !signer) return null;
       const address = await signer.getAddress();
       const balance = await stablecoin.balanceOf(address);
@@ -244,26 +206,32 @@
       document.getElementById('connect-btn').onclick = async () => {
         show('Connecting...');
         try {
-          await setupWallet('metamask');
-          await switchNetwork();
-          await ensureCorrectNetwork();
+          await connectWallet('metamask');
+          await switchNetwork(FALAJ_NETWORK);
+          await ensureCorrectNetwork(FALAJ_NETWORK);
+          syncStablecoinWithSigner();
           await refreshTokenMetadata();
           const balance = await getWalletBalance();
           document.getElementById('disconnect-btn').style.display = '';
-          document.getElementById('disconnect-btn').onclick = disconnectWallet;
+          document.getElementById('disconnect-btn').onclick = () => {
+            disconnectWallet();
+            handleDisconnectUi();
+          };
           show(`Wallet connected to ${FALAJ_NETWORK.chainName}\nToken: ${tokenSymbol}\nBalance: ${balance ?? '0'} ${tokenSymbol}`);
           setActionButtonsEnabled(true);
         } catch (err) {
           show('Connection or network switch failed:\n' + (err.message || err));
           disconnectWallet();
+          handleDisconnectUi();
         }
       };
 
       document.getElementById('transfer-btn').onclick = async () => {
         try {
           show('Preparing transfer...');
-          await switchNetwork();
-          await ensureCorrectNetwork();
+          await switchNetwork(FALAJ_NETWORK);
+          await ensureCorrectNetwork(FALAJ_NETWORK);
+          syncStablecoinWithSigner();
           await refreshTokenMetadata();
           const to = requireValue(document.getElementById('transfer-to').value.trim(), 'Recipient address');
           const amount = parseTokenAmount(document.getElementById('transfer-amount').value.trim());
@@ -278,8 +246,9 @@
       document.getElementById('approve-btn').onclick = async () => {
         try {
           show('Preparing approval...');
-          await switchNetwork();
-          await ensureCorrectNetwork();
+          await switchNetwork(FALAJ_NETWORK);
+          await ensureCorrectNetwork(FALAJ_NETWORK);
+          syncStablecoinWithSigner();
           await refreshTokenMetadata();
           const spender = requireValue(document.getElementById('approve-spender').value.trim(), 'Spender address');
           const amount = parseTokenAmount(document.getElementById('approve-amount').value.trim());
@@ -294,8 +263,9 @@
       document.getElementById('mint-btn').onclick = async () => {
         try {
           show('Preparing mint...');
-          await switchNetwork();
-          await ensureCorrectNetwork();
+          await switchNetwork(FALAJ_NETWORK);
+          await ensureCorrectNetwork(FALAJ_NETWORK);
+          syncStablecoinWithSigner();
           await refreshTokenMetadata();
           const to = requireValue(document.getElementById('mint-to').value.trim(), 'Recipient address');
           const amount = parseTokenAmount(document.getElementById('mint-amount').value.trim());
@@ -310,8 +280,9 @@
       document.getElementById('burn-btn').onclick = async () => {
         try {
           show('Preparing burn...');
-          await switchNetwork();
-          await ensureCorrectNetwork();
+          await switchNetwork(FALAJ_NETWORK);
+          await ensureCorrectNetwork(FALAJ_NETWORK);
+          syncStablecoinWithSigner();
           await refreshTokenMetadata();
           const from = requireValue(document.getElementById('burn-from').value.trim(), 'From address');
           const amount = parseTokenAmount(document.getElementById('burn-amount').value.trim());
@@ -326,8 +297,9 @@
       document.getElementById('pause-btn').onclick = async () => {
         try {
           show('Pausing token...');
-          await switchNetwork();
-          await ensureCorrectNetwork();
+          await switchNetwork(FALAJ_NETWORK);
+          await ensureCorrectNetwork(FALAJ_NETWORK);
+          syncStablecoinWithSigner();
           const tx = await stablecoin.pause();
           const receipt = await tx.wait();
           show(`✅ Token paused\nTx hash: ${receipt.transactionHash}\nExplorer: ${EXPLORER_BASE}`);
@@ -339,8 +311,9 @@
       document.getElementById('unpause-btn').onclick = async () => {
         try {
           show('Unpausing token...');
-          await switchNetwork();
-          await ensureCorrectNetwork();
+          await switchNetwork(FALAJ_NETWORK);
+          await ensureCorrectNetwork(FALAJ_NETWORK);
+          syncStablecoinWithSigner();
           const tx = await stablecoin.unpause();
           const receipt = await tx.wait();
           show(`✅ Token unpaused\nTx hash: ${receipt.transactionHash}\nExplorer: ${EXPLORER_BASE}`);
@@ -352,8 +325,9 @@
       document.getElementById('freeze-btn').onclick = async () => {
         try {
           show('Freezing account...');
-          await switchNetwork();
-          await ensureCorrectNetwork();
+          await switchNetwork(FALAJ_NETWORK);
+          await ensureCorrectNetwork(FALAJ_NETWORK);
+          syncStablecoinWithSigner();
           const account = requireValue(document.getElementById('freeze-account').value.trim(), 'Account address');
           const tx = await stablecoin.freezeAccount(account);
           const receipt = await tx.wait();
@@ -366,8 +340,9 @@
       document.getElementById('unfreeze-btn').onclick = async () => {
         try {
           show('Unfreezing account...');
-          await switchNetwork();
-          await ensureCorrectNetwork();
+          await switchNetwork(FALAJ_NETWORK);
+          await ensureCorrectNetwork(FALAJ_NETWORK);
+          syncStablecoinWithSigner();
           const account = requireValue(document.getElementById('freeze-account').value.trim(), 'Account address');
           const tx = await stablecoin.unfreezeAccount(account);
           const receipt = await tx.wait();
@@ -380,8 +355,9 @@
       document.getElementById('emergency-btn').onclick = async () => {
         try {
           show('Preparing emergency transfer...');
-          await switchNetwork();
-          await ensureCorrectNetwork();
+          await switchNetwork(FALAJ_NETWORK);
+          await ensureCorrectNetwork(FALAJ_NETWORK);
+          syncStablecoinWithSigner();
           await refreshTokenMetadata();
           const from = requireValue(document.getElementById('emergency-from').value.trim(), 'From address');
           const to = requireValue(document.getElementById('emergency-to').value.trim(), 'To address');
@@ -395,7 +371,23 @@
       };
 
       // Disconnect
-      document.getElementById('disconnect-btn').onclick = disconnectWallet;
+      document.getElementById('disconnect-btn').onclick = () => {
+        disconnectWallet();
+        handleDisconnectUi();
+      };
+
+      onAccountsChanged((accounts) => {
+        if (!accounts || accounts.length === 0) {
+          disconnectWallet();
+          handleDisconnectUi();
+        }
+      });
+
+      onChainChanged(() => {
+        disconnectWallet();
+        handleDisconnectUi();
+        show('Network changed. Please reconnect your wallet.');
+      });
     });
   </script>
 </body>
