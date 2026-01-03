@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Identity Registry</title>
+    <script src="https://c0f4f41c-2f55-4863-921b-sdk-docs.github.io/cdn/metamask-sdk.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
+  </head>
+  <body>
+    <main>
+      <section>
+        <button id="btnConnect" type="button">Connect Wallet</button>
+        <p id="status">Status: Disconnected</p>
+        <div>
+          <p>Account: <span id="account">-</span></p>
+          <p>Chain: <span id="chain">-</span></p>
+          <p>Contract: <span id="contract">-</span></p>
+        </div>
+      </section>
+
+      <section>
+        <h2>Read</h2>
+        <button type="button">Read contract owner/admin</button>
+        <p>Owner/Admin: <span id="outOwner">-</span></p>
+      </section>
+
+      <section>
+        <h2>Status Check</h2>
+        <label for="inputAddress">Address</label>
+        <input id="inputAddress" type="text" placeholder="0x..." />
+        <button type="button">Check status</button>
+        <p>Status: <span id="outStatus">-</span></p>
+      </section>
+    </main>
+
+    <script type="module" src="./src/main-identity.js"></script>
+  </body>
+</html>
