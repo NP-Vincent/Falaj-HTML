@@ -20,8 +20,9 @@ const FALAJ_CHAIN_CONFIG = {
 };
 
 export async function connectWallet() {
-  const accounts = await MMSDK.connect();
+  await MMSDK.connect();
   const mmProvider = MMSDK.getProvider();
+  const accounts = await mmProvider.request({ method: "eth_requestAccounts" });
   return { mmProvider, accounts };
 }
 
