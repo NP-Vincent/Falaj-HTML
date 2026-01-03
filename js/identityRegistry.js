@@ -15,12 +15,24 @@ import {
   switchNetwork
 } from './wallet.js';
 
-const IDENTITY_REGISTRY_ABI = await fetch(IDENTITY_REGISTRY_ABI_URL).then((response) => {
+let identityRegistryAbi = null;
+
+async function getIdentityRegistryAbi() {
+  if (identityRegistryAbi) {
+    return identityRegistryAbi;
+  }
+  const embedded = document.getElementById('identity-registry-abi');
+  if (embedded?.textContent?.trim()) {
+    identityRegistryAbi = JSON.parse(embedded.textContent);
+    return identityRegistryAbi;
+  }
+  const response = await fetch(IDENTITY_REGISTRY_ABI_URL);
   if (!response.ok) {
     throw new Error(`Failed to load Identity Registry ABI (${response.status})`);
   }
-  return response.json();
-});
+  identityRegistryAbi = await response.json();
+  return identityRegistryAbi;
+}
 
 // === STATE ===
 let registry = null;
@@ -115,11 +127,14 @@ function parsePagination(value, label) {
 }
 
 // === WALLET CONNECTION LOGIC ===
-function syncRegistryWithSigner() {
+async function syncRegistryWithSigner() {
   const signer = getSigner();
-  registry = signer
-    ? new ethers.Contract(IDENTITY_REGISTRY_ADDRESS, IDENTITY_REGISTRY_ABI, signer)
-    : null;
+  if (!signer) {
+    registry = null;
+    return;
+  }
+  const abi = await getIdentityRegistryAbi();
+  registry = new ethers.Contract(IDENTITY_REGISTRY_ADDRESS, abi, signer);
 }
 
 function handleDisconnectUi() {
@@ -140,7 +155,6 @@ document.addEventListener('DOMContentLoaded', async () => {
       await connectWallet('metamask');
       await switchNetwork(FALAJ_NETWORK);
       await ensureCorrectNetwork(FALAJ_NETWORK);
-      syncRegistryWithSigner();
       document.getElementById('disconnect-btn').style.display = '';
       document.getElementById('disconnect-btn').onclick = () => {
         disconnectWallet();
@@ -162,7 +176,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       show('Adding participant...');
       await switchNetwork(FALAJ_NETWORK);
       await ensureCorrectNetwork(FALAJ_NETWORK);
-      syncRegistryWithSigner();
+      await syncRegistryWithSigner();
       const account = requireValue(document.getElementById('add-account').value.trim(), 'Account address');
       const role = parseRole(document.getElementById('add-role').value.trim());
       const expiry = parseExpiry(document.getElementById('add-expiry').value.trim());
@@ -179,7 +193,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       show('Changing role...');
       await switchNetwork(FALAJ_NETWORK);
       await ensureCorrectNetwork(FALAJ_NETWORK);
-      syncRegistryWithSigner();
+      await syncRegistryWithSigner();
       const account = requireValue(document.getElementById('change-account').value.trim(), 'Account address');
       const role = parseRole(document.getElementById('change-role').value.trim());
       const tx = await registry.changeRole(account, role);
@@ -195,7 +209,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       show('Renewing KYC...');
       await switchNetwork(FALAJ_NETWORK);
       await ensureCorrectNetwork(FALAJ_NETWORK);
-      syncRegistryWithSigner();
+      await syncRegistryWithSigner();
       const account = requireValue(document.getElementById('renew-account').value.trim(), 'Account address');
       const expiry = parseExpiry(document.getElementById('renew-expiry').value.trim());
       const tx = await registry.renewKYC(account, expiry);
@@ -211,7 +225,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       show('Removing participant...');
       await switchNetwork(FALAJ_NETWORK);
       await ensureCorrectNetwork(FALAJ_NETWORK);
-      syncRegistryWithSigner();
+      await syncRegistryWithSigner();
       const account = requireValue(document.getElementById('remove-account').value.trim(), 'Account address');
       const tx = await registry.removeParticipant(account);
       const receipt = await tx.wait();
@@ -226,7 +240,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       show('Freezing participant...');
       await switchNetwork(FALAJ_NETWORK);
       await ensureCorrectNetwork(FALAJ_NETWORK);
-      syncRegistryWithSigner();
+      await syncRegistryWithSigner();
       const account = requireValue(document.getElementById('freeze-account').value.trim(), 'Account address');
       const reason = requireValue(document.getElementById('freeze-reason').value.trim(), 'Reason');
       const tx = await registry.freezeAccount(account, reason);
@@ -242,7 +256,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       show('Unfreezing participant...');
       await switchNetwork(FALAJ_NETWORK);
       await ensureCorrectNetwork(FALAJ_NETWORK);
-      syncRegistryWithSigner();
+      await syncRegistryWithSigner();
       const account = requireValue(document.getElementById('freeze-account').value.trim(), 'Account address');
       const tx = await registry.unfreezeAccount(account);
       const receipt = await tx.wait();
@@ -257,7 +271,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       show('Pausing registry...');
       await switchNetwork(FALAJ_NETWORK);
       await ensureCorrectNetwork(FALAJ_NETWORK);
-      syncRegistryWithSigner();
+      await syncRegistryWithSigner();
       const tx = await registry.pause();
       const receipt = await tx.wait();
       show(`✅ Registry paused\nTx hash: ${receipt.transactionHash}\nExplorer: ${EXPLORER_BASE}`);
@@ -271,7 +285,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       show('Unpausing registry...');
       await switchNetwork(FALAJ_NETWORK);
       await ensureCorrectNetwork(FALAJ_NETWORK);
-      syncRegistryWithSigner();
+      await syncRegistryWithSigner();
       const tx = await registry.unpause();
       const receipt = await tx.wait();
       show(`✅ Registry unpaused\nTx hash: ${receipt.transactionHash}\nExplorer: ${EXPLORER_BASE}`);
@@ -285,7 +299,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       show('Updating precompile sync...');
       await switchNetwork(FALAJ_NETWORK);
       await ensureCorrectNetwork(FALAJ_NETWORK);
-      syncRegistryWithSigner();
+      await syncRegistryWithSigner();
       const enabled = document.getElementById('precompile-enabled').value === 'true';
       const tx = await registry.setPrecompileSync(enabled);
       const receipt = await tx.wait();
@@ -300,7 +314,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       show('Fetching participant...');
       await switchNetwork(FALAJ_NETWORK);
       await ensureCorrectNetwork(FALAJ_NETWORK);
-      syncRegistryWithSigner();
+      await syncRegistryWithSigner();
       const account = requireValue(document.getElementById('lookup-account').value.trim(), 'Account address');
       const participant = await registry.getParticipant(account);
       show(
@@ -320,7 +334,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       show('Fetching current role...');
       await switchNetwork(FALAJ_NETWORK);
       await ensureCorrectNetwork(FALAJ_NETWORK);
-      syncRegistryWithSigner();
+      await syncRegistryWithSigner();
       const account = requireValue(document.getElementById('current-role-account').value.trim(), 'Account address');
       const role = await registry.participantRole(account);
       show(`Current role for ${account}\nRole: ${formatRole(role)}`);
@@ -334,7 +348,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       show('Checking role...');
       await switchNetwork(FALAJ_NETWORK);
       await ensureCorrectNetwork(FALAJ_NETWORK);
-      syncRegistryWithSigner();
+      await syncRegistryWithSigner();
       const account = requireValue(document.getElementById('check-role-account').value.trim(), 'Account address');
       const roleValue = parseRole(document.getElementById('check-role-value').value.trim());
       const hasRole = await registry.hasParticipantRole(account, roleValue);
@@ -349,7 +363,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       show('Checking allowlist...');
       await switchNetwork(FALAJ_NETWORK);
       await ensureCorrectNetwork(FALAJ_NETWORK);
-      syncRegistryWithSigner();
+      await syncRegistryWithSigner();
       const account = requireValue(document.getElementById('allowed-account').value.trim(), 'Account address');
       const allowed = await registry.isAllowedToTransact(account);
       show(`Allowed to transact for ${account}\nAllowed: ${allowed}`);
@@ -363,7 +377,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       show('Fetching participant state...');
       await switchNetwork(FALAJ_NETWORK);
       await ensureCorrectNetwork(FALAJ_NETWORK);
-      syncRegistryWithSigner();
+      await syncRegistryWithSigner();
       const account = requireValue(document.getElementById('state-account').value.trim(), 'Account address');
       const [whitelisted, role, expiry, frozen, allowed] = await Promise.all([
         registry.isWhitelisted(account),
@@ -392,7 +406,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       show('Fetching participants...');
       await switchNetwork(FALAJ_NETWORK);
       await ensureCorrectNetwork(FALAJ_NETWORK);
-      syncRegistryWithSigner();
+      await syncRegistryWithSigner();
       const offset = parsePagination(document.getElementById('participants-offset').value.trim(), 'Offset');
       const limit = parsePagination(document.getElementById('participants-limit').value.trim(), 'Limit');
       const [participants, total] = await Promise.all([
