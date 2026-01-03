@@ -45,3 +45,8 @@ export async function hasRole(mmProvider, role, account) {
   const contract = getIdentityRegistryContract(mmProvider);
   return contract.hasRole(role, account);
 }
+
+export async function freezeAccount(mmProvider, account, reason) {
+  const contract = await getIdentityRegistryContractWithSigner(mmProvider);
+  return contract.freezeAccount(account, reason);
+}
