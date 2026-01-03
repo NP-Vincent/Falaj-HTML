@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Identity Registry</title>
+  <style>
+    body { font-family: sans-serif; margin: auto; }
+    #status { white-space: pre-wrap; }
+    #connect-btn, #disconnect-btn {
+      margin: 5px;
+    }
+    .details {
+      margin: 10px 0 20px;
+    }
+    .details p {
+      margin: 4px 0;
+    }
+    .actions {
+      margin-top: 20px;
+      padding: 12px;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      max-width: 900px;
+    }
+    .actions h4 {
+      margin: 0 0 10px;
+    }
+    .action-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 12px;
+      align-items: center;
+    }
+    .action-row input {
+      padding: 6px 8px;
+      min-width: 180px;
+    }
+    .action-row label {
+      font-weight: 600;
+      margin-right: 4px;
+    }
+    .action-row button {
+      margin-right: 6px;
+    }
+    .action-row span {
+      font-weight: 600;
+    }
+  </style>
+</head>
+<body>
+  <h3>Identity Registry</h3>
+  <p id="status">Status: Disconnected</p>
+  <div class="details">
+    <p>Account: <span id="account">-</span></p>
+    <p>Chain: <span id="chain">-</span></p>
+    <p>Contract: <span id="contract">-</span></p>
+  </div>
+  <button id="connect-btn">Connect Wallet</button>
+  <button id="disconnect-btn" style="display:none;">Disconnect</button>
+
+  <section class="actions">
+    <h4>Identity Registry Reads</h4>
+    <div class="action-row">
+      <strong>Participant Count</strong>
+      <button id="participant-count-btn" class="action-btn" disabled>Load</button>
+      <span id="participant-count">-</span>
+    </div>
+    <div class="action-row">
+      <strong>Participant Details</strong>
+      <input id="participant-address" placeholder="Participant address" />
+      <button id="participant-get-btn" class="action-btn" disabled>Get</button>
+      <span>Whitelisted:</span> <span id="participant-whitelisted">-</span>
+      <span>Role:</span> <span id="participant-role">-</span>
+      <span>Expiry:</span> <span id="participant-expiry">-</span>
+      <span>Frozen:</span> <span id="participant-frozen">-</span>
+    </div>
+    <div class="action-row">
+      <strong>Role Admin</strong>
+      <input id="admin-role" placeholder="Role bytes32 (default admin if blank)" />
+      <button id="btnReadAdmin" class="action-btn" disabled>Read Admin</button>
+      <span id="outOwner">-</span>
+    </div>
+    <div class="action-row">
+      <strong>Has Role</strong>
+      <input id="inputAddress" placeholder="Account address" />
+      <input id="role-input" placeholder="Role bytes32 (default admin if blank)" />
+      <button id="btnCheckStatus" class="action-btn" disabled>Check</button>
+      <span id="outStatus">-</span>
+    </div>
+    <div class="action-row">
+      <strong>Has Participant Role</strong>
+      <input id="participant-role-address" placeholder="Account address" />
+      <input id="participant-role-input" placeholder="Role bytes32 (default admin if blank)" />
+      <button id="btnCheckParticipantRole" class="action-btn" disabled>Check</button>
+      <span id="participant-role-status">-</span>
+    </div>
+    <div class="action-row">
+      <strong>Allowed To Transact</strong>
+      <input id="transact-address" placeholder="Account address" />
+      <button id="btnCheckTransact" class="action-btn" disabled>Check</button>
+      <span id="transact-status">-</span>
+    </div>
+  </section>
+
+  <section class="actions">
+    <h4>Identity Registry Actions</h4>
+    <div class="action-row">
+      <strong>Add Participant</strong>
+      <input id="add-address" placeholder="Account address" />
+      <input id="add-role" placeholder="Role bytes32" />
+      <input id="add-expiry" placeholder="KYC expiry (unix timestamp)" />
+      <button id="add-participant-btn" class="action-btn" disabled>Add</button>
+      <span>Tx:</span> <span id="add-participant-tx">-</span>
+      <span>Block:</span> <span id="add-participant-block">-</span>
+    </div>
+    <div class="action-row">
+      <strong>Change Role</strong>
+      <input id="change-address" placeholder="Account address" />
+      <input id="change-role" placeholder="New role bytes32" />
+      <button id="change-role-btn" class="action-btn" disabled>Change</button>
+      <span>Tx:</span> <span id="change-role-tx">-</span>
+      <span>Block:</span> <span id="change-role-block">-</span>
+    </div>
+    <div class="action-row">
+      <strong>Renew KYC</strong>
+      <input id="renew-address" placeholder="Account address" />
+      <input id="renew-expiry" placeholder="New expiry (unix timestamp)" />
+      <button id="renew-kyc-btn" class="action-btn" disabled>Renew</button>
+      <span>Tx:</span> <span id="renew-kyc-tx">-</span>
+      <span>Block:</span> <span id="renew-kyc-block">-</span>
+    </div>
+    <div class="action-row">
+      <strong>Freeze</strong>
+      <input id="freezeAddress" placeholder="Account address" />
+      <input id="freezeReason" placeholder="Reason" />
+      <button id="btnFreeze" class="action-btn" disabled>Freeze</button>
+      <span>Tx:</span> <span id="outFreezeTx">-</span>
+      <span>Block:</span> <span id="outFreezeBlock">-</span>
+    </div>
+    <div class="action-row">
+      <strong>Unfreeze</strong>
+      <input id="unfreezeAddress" placeholder="Account address" />
+      <button id="btnUnfreeze" class="action-btn" disabled>Unfreeze</button>
+      <span>Tx:</span> <span id="outUnfreezeTx">-</span>
+      <span>Block:</span> <span id="outUnfreezeBlock">-</span>
+    </div>
+    <div class="action-row">
+      <strong>Remove Participant</strong>
+      <input id="remove-address" placeholder="Account address" />
+      <button id="remove-participant-btn" class="action-btn" disabled>Remove</button>
+      <span>Tx:</span> <span id="remove-participant-tx">-</span>
+      <span>Block:</span> <span id="remove-participant-block">-</span>
+    </div>
+    <div class="action-row">
+      <strong>Pause Controls</strong>
+      <button id="pause-btn" class="action-btn" disabled>Pause</button>
+      <button id="unpause-btn" class="action-btn" disabled>Unpause</button>
+      <span>Pause Tx:</span> <span id="pause-tx">-</span>
+      <span>Block:</span> <span id="pause-block">-</span>
+      <span>Unpause Tx:</span> <span id="unpause-tx">-</span>
+      <span>Block:</span> <span id="unpause-block">-</span>
+    </div>
+    <div class="action-row">
+      <strong>Precompile Sync</strong>
+      <label>
+        <input id="precompile-enabled" type="checkbox" />
+        Enable
+      </label>
+      <button id="precompile-btn" class="action-btn" disabled>Update</button>
+      <span>Tx:</span> <span id="precompile-tx">-</span>
+      <span>Block:</span> <span id="precompile-block">-</span>
+    </div>
+  </section>
+
+  <script src="https://c0f4f41c-2f55-4863-921b-sdk-docs.github.io/cdn/metamask-sdk.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/ethers@6/dist/ethers.umd.min.js"></script>
+  <script type="module" src="./src/main-identity.js"></script>
+</body>
+</html>
