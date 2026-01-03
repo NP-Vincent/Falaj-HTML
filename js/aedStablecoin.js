@@ -15,6 +15,12 @@ import {
   switchNetwork
 } from './wallet.js';
 
+const ethers = window.ethers;
+
+if (!ethers) {
+  throw new Error('Ethers library not loaded. Ensure the ethers script is included before aedStablecoin.js.');
+}
+
 function normalizeAbi(abiData) {
   if (Array.isArray(abiData)) {
     return abiData;

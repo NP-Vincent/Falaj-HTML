@@ -1,3 +1,9 @@
+const ethers = window.ethers;
+
+if (!ethers) {
+  throw new Error('Ethers library not loaded. Ensure the ethers script is included before wallet.js.');
+}
+
 let provider = null;
 let signer = null;
 let currentWallet = null;
