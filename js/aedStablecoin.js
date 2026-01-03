@@ -15,11 +15,22 @@ import {
   switchNetwork
 } from './wallet.js';
 
-const AED_STABLECOIN_ABI = await fetch(AED_STABLECOIN_ABI_URL).then((response) => {
+function normalizeAbi(abiData) {
+  if (Array.isArray(abiData)) {
+    return abiData;
+  }
+  if (abiData?.abi && Array.isArray(abiData.abi)) {
+    return abiData.abi;
+  }
+  throw new Error('Invalid AED Stablecoin ABI format.');
+}
+
+const AED_STABLECOIN_ABI = await fetch(AED_STABLECOIN_ABI_URL).then(async (response) => {
   if (!response.ok) {
     throw new Error(`Failed to load AED Stablecoin ABI (${response.status})`);
   }
-  return response.json();
+  const abiData = await response.json();
+  return normalizeAbi(abiData);
 });
 
 // === STATE ===
