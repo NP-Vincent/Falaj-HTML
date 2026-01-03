@@ -6,8 +6,7 @@
   <style>
     body { font-family: sans-serif; margin: auto; }
     #msg { white-space: pre-wrap; }
-    #qr { margin: 20px 0; }
-    #connect-btn, #pay-btn, #disconnect-btn {
+    #connect-btn, #disconnect-btn {
       margin: 5px;
     }
     .actions {
@@ -42,8 +41,6 @@
   <p id="price-usd"></p>
   <button id="connect-btn">Connect Wallet</button>
   <button id="disconnect-btn" style="display:none;">Disconnect</button>
-  <button id="pay-btn" disabled>Pay</button>
-  <div id="qr"></div>
   <section class="actions">
     <h4>AED Stablecoin Actions</h4>
     <div class="action-row">
@@ -92,7 +89,6 @@
   <pre id="msg"></pre>
 
   <script src="https://cdn.jsdelivr.net/npm/ethers@6/dist/ethers.umd.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
   <script>
     // === CONFIGURATION ===
     const FALAJ_NETWORK = {
@@ -104,8 +100,6 @@
     };
 
     const EXPLORER_BASE = 'https://build.avax.network/explorer/H3hnSLUCbiQaY92f34SyiUFCpfiHqm1HkGtig5BDBKKk3ZJYB';
-
-    const DESTINATION_ADDRESS = '0x43F3f03d89290358034993aE3B3938D056D76De2';
 
     const AED_STABLECOIN_ADDRESS = '0xa5be895EB6DD499b688AE4bD42Fd78500cE24b0F';
     const AED_STABLECOIN_ABI = [
@@ -1235,10 +1229,6 @@
       document.getElementById('msg').textContent = msg;
     }
 
-    function enablePayBtn(enabled) {
-      document.getElementById('pay-btn').disabled = !enabled;
-    }
-
     function setActionButtonsEnabled(enabled) {
       const actionButtons = [
         'transfer-btn',
@@ -1291,7 +1281,6 @@
       signer = null;
       currentWallet = null;
       stablecoin = null;
-      enablePayBtn(false);
       setActionButtonsEnabled(false);
       document.getElementById('disconnect-btn').style.display = 'none';
       show('Wallet disconnected');
@@ -1352,12 +1341,6 @@
       return ethers.formatUnits(balance, tokenDecimals);
     }
 
-    async function sendToken(to, amt) {
-      await ensureCorrectNetwork();
-      const tx = await stablecoin.transfer(to, ethers.parseUnits(String(amt), tokenDecimals));
-      return tx.wait();
-    }
-
     // === MAIN UI HANDLING ===
     document.addEventListener('DOMContentLoaded', async () => {
       // Setup UI with params
@@ -1366,13 +1349,10 @@
       document.getElementById('price-aed').textContent = params.get('aed') ? `AED ${params.get('aed')}` : '';
       document.getElementById('price-usd').textContent = params.get('usd') ? `USD ${params.get('usd')}` : '';
 
-      // Setup QR code for manual payment
-      new QRCode(document.getElementById('qr'), DESTINATION_ADDRESS);
       setActionButtonsEnabled(false);
 
       // Connect Wallet
       document.getElementById('connect-btn').onclick = async () => {
-        enablePayBtn(false);
         show('Connecting...');
         try {
           await setupWallet('metamask');
@@ -1383,32 +1363,11 @@
           document.getElementById('disconnect-btn').style.display = '';
           document.getElementById('disconnect-btn').onclick = disconnectWallet;
           show(`Wallet connected to ${FALAJ_NETWORK.chainName}\nToken: ${tokenSymbol}\nBalance: ${balance ?? '0'} ${tokenSymbol}`);
-          enablePayBtn(true);
           setActionButtonsEnabled(true);
         } catch (err) {
           show('Connection or network switch failed:\n' + (err.message || err));
           disconnectWallet();
         }
-      };
-
-      // Pay
-      document.getElementById('pay-btn').onclick = async () => {
-        enablePayBtn(false);
-        const amountParam = params.get('aed') || params.get('usd');
-        const amount = Number(amountParam);
-        try {
-          show('Checking network...');
-          await switchNetwork();
-          await ensureCorrectNetwork();
-          await refreshTokenMetadata();
-          const network = await provider.getNetwork();
-          show(`Sending ${amount} ${tokenSymbol} to ${DESTINATION_ADDRESS} on chain ${network.chainId}...`);
-          const receipt = await sendToken(DESTINATION_ADDRESS, amount);
-          show(`✅ Sent ${amount} ${tokenSymbol} to ${DESTINATION_ADDRESS} on ${FALAJ_NETWORK.chainName}\n\nTransaction hash: ${receipt.transactionHash}\nExplorer: ${EXPLORER_BASE}`);
-        } catch (err) {
-          show('Payment failed:\n' + (err.message || err));
-        }
-        enablePayBtn(true);
       };
 
       document.getElementById('transfer-btn').onclick = async () => {
