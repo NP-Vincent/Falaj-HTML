@@ -1,4 +1,3 @@
-import { ethers } from "ethers";
 import { CHAIN_ID_HEX, IDENTITY_REGISTRY_ADDRESS } from "./config.js";
 import { connectWallet, ensureChain } from "./metamask.js";
 import {
@@ -15,6 +14,8 @@ import {
   setDisconnectedState,
   setStatus,
 } from "./ui.js";
+
+const ethers = window.ethers;
 
 const DEFAULT_ADMIN_ROLE =
   ethers.constants?.HashZero ??

@@ -1,8 +1,9 @@
-import { ethers } from "ethers";
 import {
   IDENTITY_REGISTRY_ADDRESS,
   IDENTITY_REGISTRY_ABI,
 } from "./config.js";
+
+const ethers = window.ethers;
 
 function getEthersProvider(mmProvider) {
   if (ethers.BrowserProvider) {
