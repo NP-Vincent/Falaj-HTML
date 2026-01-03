@@ -60,17 +60,16 @@ function requireConnected() {
 
 async function handleConnect() {
   try {
-    const { mmProvider } = await connectWallet();
+    const { mmProvider, accounts } = await connectWallet();
     state.mmProvider = mmProvider;
     await ensureChain(mmProvider);
 
     state.contract = await getIdentityRegistryContractWithSigner(mmProvider);
     await participantCount(mmProvider);
 
-    const [account] = await mmProvider.request({ method: "eth_accounts" });
     const chainId = await mmProvider.request({ method: "eth_chainId" });
 
-    state.account = account ?? null;
+    state.account = accounts?.[0] ?? null;
 
     setConnectedState({
       account: state.account,
