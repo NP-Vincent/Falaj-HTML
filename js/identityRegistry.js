@@ -17,20 +17,30 @@ import {
 
 let identityRegistryAbi = null;
 
+function normalizeAbi(abiData) {
+  if (Array.isArray(abiData)) {
+    return abiData;
+  }
+  if (abiData?.abi && Array.isArray(abiData.abi)) {
+    return abiData.abi;
+  }
+  throw new Error('Invalid Identity Registry ABI format.');
+}
+
 async function getIdentityRegistryAbi() {
   if (identityRegistryAbi) {
     return identityRegistryAbi;
   }
   const embedded = document.getElementById('identity-registry-abi');
   if (embedded?.textContent?.trim()) {
-    identityRegistryAbi = JSON.parse(embedded.textContent);
+    identityRegistryAbi = normalizeAbi(JSON.parse(embedded.textContent));
     return identityRegistryAbi;
   }
   const response = await fetch(IDENTITY_REGISTRY_ABI_URL);
   if (!response.ok) {
     throw new Error(`Failed to load Identity Registry ABI (${response.status})`);
   }
-  identityRegistryAbi = await response.json();
+  identityRegistryAbi = normalizeAbi(await response.json());
   return identityRegistryAbi;
 }
 
