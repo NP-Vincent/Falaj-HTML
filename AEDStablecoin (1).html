@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Crypto Payment</title>
+  <style>
+    body { font-family: sans-serif; margin: auto; }
+    #msg { white-space: pre-wrap; }
+    #connect-btn, #disconnect-btn {
+      margin: 5px;
+    }
+    .actions {
+      margin-top: 20px;
+      padding: 12px;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      max-width: 780px;
+    }
+    .actions h4 {
+      margin: 0 0 10px;
+    }
+    .action-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 12px;
+      align-items: center;
+    }
+    .action-row input {
+      padding: 6px 8px;
+      min-width: 180px;
+    }
+    .action-row button {
+      margin-right: 6px;
+    }
+  </style>
+</head>
+<body>
+  <h3 id="prop-title"></h3>
+  <p id="price-aed"></p>
+  <p id="price-usd"></p>
+  <button id="connect-btn">Connect Wallet</button>
+  <button id="disconnect-btn" style="display:none;">Disconnect</button>
+  <section class="actions">
+    <h4>AED Stablecoin Actions</h4>
+    <div class="action-row">
+      <strong>Transfer</strong>
+      <input id="transfer-to" placeholder="Recipient address" />
+      <input id="transfer-amount" placeholder="Amount" />
+      <button id="transfer-btn" disabled>Send</button>
+    </div>
+    <div class="action-row">
+      <strong>Approve</strong>
+      <input id="approve-spender" placeholder="Spender address" />
+      <input id="approve-amount" placeholder="Amount" />
+      <button id="approve-btn" disabled>Approve</button>
+    </div>
+    <div class="action-row">
+      <strong>Mint (Issuer)</strong>
+      <input id="mint-to" placeholder="Recipient address" />
+      <input id="mint-amount" placeholder="Amount" />
+      <button id="mint-btn" disabled>Mint</button>
+    </div>
+    <div class="action-row">
+      <strong>Burn From (Issuer)</strong>
+      <input id="burn-from" placeholder="From address" />
+      <input id="burn-amount" placeholder="Amount" />
+      <button id="burn-btn" disabled>Burn</button>
+    </div>
+    <div class="action-row">
+      <strong>Pause Controls (Regulator)</strong>
+      <button id="pause-btn" disabled>Pause</button>
+      <button id="unpause-btn" disabled>Unpause</button>
+    </div>
+    <div class="action-row">
+      <strong>Freeze (Regulator)</strong>
+      <input id="freeze-account" placeholder="Account address" />
+      <button id="freeze-btn" disabled>Freeze</button>
+      <button id="unfreeze-btn" disabled>Unfreeze</button>
+    </div>
+    <div class="action-row">
+      <strong>Emergency Transfer (Regulator)</strong>
+      <input id="emergency-from" placeholder="From address (frozen)" />
+      <input id="emergency-to" placeholder="To address" />
+      <input id="emergency-amount" placeholder="Amount" />
+      <button id="emergency-btn" disabled>Execute</button>
+    </div>
+  </section>
+  <pre id="msg"></pre>
+
+  <script src="https://cdn.jsdelivr.net/npm/ethers@6/dist/ethers.umd.min.js"></script>
+  <script type="module" src="config.js"></script>
+  <script type="module" src="wallet.js"></script>
+  <script type="module" src="aedStablecoin.js"></script>
+</body>
+</html>
