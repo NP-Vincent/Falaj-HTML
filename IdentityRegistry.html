@@ -19,6 +19,10 @@
     .actions h4 {
       margin: 0 0 10px;
     }
+    .actions h5 {
+      margin: 16px 0 8px;
+      color: #333;
+    }
     .action-row {
       display: flex;
       flex-wrap: wrap;
@@ -42,6 +46,7 @@
   <button id="disconnect-btn" style="display:none;">Disconnect</button>
   <section class="actions">
     <h4>Identity Registry Actions</h4>
+    <h5>Write Actions</h5>
     <div class="action-row">
       <strong>Add Participant</strong>
       <input id="add-account" placeholder="Account address" />
@@ -90,6 +95,34 @@
       <strong>Lookup Participant</strong>
       <input id="lookup-account" placeholder="Account address" />
       <button id="lookup-btn" disabled>Lookup</button>
+    </div>
+    <h5>Read Actions</h5>
+    <div class="action-row">
+      <strong>Current Role</strong>
+      <input id="current-role-account" placeholder="Account address" />
+      <button id="current-role-btn" disabled>Get Role</button>
+    </div>
+    <div class="action-row">
+      <strong>Check Role</strong>
+      <input id="check-role-account" placeholder="Account address" />
+      <input id="check-role-value" placeholder="Role (bytes32 or label)" />
+      <button id="check-role-btn" disabled>Check</button>
+    </div>
+    <div class="action-row">
+      <strong>Allowed To Transact</strong>
+      <input id="allowed-account" placeholder="Account address" />
+      <button id="allowed-btn" disabled>Check</button>
+    </div>
+    <div class="action-row">
+      <strong>Participant State</strong>
+      <input id="state-account" placeholder="Account address" />
+      <button id="state-btn" disabled>Get State</button>
+    </div>
+    <div class="action-row">
+      <strong>Participants List</strong>
+      <input id="participants-offset" placeholder="Offset" />
+      <input id="participants-limit" placeholder="Limit" />
+      <button id="participants-btn" disabled>Fetch</button>
     </div>
   </section>
   <pre id="msg"></pre>
@@ -272,6 +305,175 @@
         ],
         "stateMutability": "view",
         "type": "function"
+      },
+      {
+        "inputs": [
+          {
+            "internalType": "address",
+            "name": "account",
+            "type": "address"
+          }
+        ],
+        "name": "isAllowedToTransact",
+        "outputs": [
+          {
+            "internalType": "bool",
+            "name": "",
+            "type": "bool"
+          }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+      },
+      {
+        "inputs": [
+          {
+            "internalType": "address",
+            "name": "account",
+            "type": "address"
+          },
+          {
+            "internalType": "bytes32",
+            "name": "role",
+            "type": "bytes32"
+          }
+        ],
+        "name": "hasParticipantRole",
+        "outputs": [
+          {
+            "internalType": "bool",
+            "name": "",
+            "type": "bool"
+          }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+      },
+      {
+        "inputs": [
+          {
+            "internalType": "uint256",
+            "name": "offset",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "limit",
+            "type": "uint256"
+          }
+        ],
+        "name": "getParticipants",
+        "outputs": [
+          {
+            "internalType": "address[]",
+            "name": "addresses",
+            "type": "address[]"
+          }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+      },
+      {
+        "inputs": [],
+        "name": "participantCount",
+        "outputs": [
+          {
+            "internalType": "uint256",
+            "name": "",
+            "type": "uint256"
+          }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+      },
+      {
+        "inputs": [
+          {
+            "internalType": "address",
+            "name": "",
+            "type": "address"
+          }
+        ],
+        "name": "participantRole",
+        "outputs": [
+          {
+            "internalType": "bytes32",
+            "name": "",
+            "type": "bytes32"
+          }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+      },
+      {
+        "inputs": [
+          {
+            "internalType": "address",
+            "name": "",
+            "type": "address"
+          }
+        ],
+        "name": "isWhitelisted",
+        "outputs": [
+          {
+            "internalType": "bool",
+            "name": "",
+            "type": "bool"
+          }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+      },
+      {
+        "inputs": [
+          {
+            "internalType": "address",
+            "name": "",
+            "type": "address"
+          }
+        ],
+        "name": "isFrozen",
+        "outputs": [
+          {
+            "internalType": "bool",
+            "name": "",
+            "type": "bool"
+          }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+      },
+      {
+        "inputs": [
+          {
+            "internalType": "address",
+            "name": "",
+            "type": "address"
+          }
+        ],
+        "name": "kycExpiry",
+        "outputs": [
+          {
+            "internalType": "uint256",
+            "name": "",
+            "type": "uint256"
+          }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+      },
+      {
+        "inputs": [],
+        "name": "precompileSyncEnabled",
+        "outputs": [
+          {
+            "internalType": "bool",
+            "name": "",
+            "type": "bool"
+          }
+        ],
+        "stateMutability": "view",
+        "type": "function"
       }
     ];
 
@@ -296,7 +498,12 @@
         'pause-btn',
         'unpause-btn',
         'precompile-btn',
-        'lookup-btn'
+        'lookup-btn',
+        'current-role-btn',
+        'check-role-btn',
+        'allowed-btn',
+        'state-btn',
+        'participants-btn'
       ];
       actionButtons.forEach((id) => {
         const btn = document.getElementById(id);
@@ -326,6 +533,42 @@
         return sanitized;
       }
       return ethers.id(sanitized);
+    }
+
+    const ROLE_LABELS = [
+      'REGULATOR',
+      'ISSUER_STABLECOIN',
+      'ISSUER_BOND',
+      'CUSTODIAN',
+      'PARTICIPANT'
+    ];
+
+    const ROLE_HASHES = ROLE_LABELS.reduce((acc, label) => {
+      acc[label] = ethers.id(label);
+      return acc;
+    }, {});
+
+    function formatRole(roleHash) {
+      const match = Object.entries(ROLE_HASHES).find(([, hash]) => hash.toLowerCase() === roleHash.toLowerCase());
+      return match ? `${match[0]} (${roleHash})` : roleHash;
+    }
+
+    function formatExpiry(expiry) {
+      const expiryNumber = Number(expiry);
+      if (!Number.isFinite(expiryNumber) || expiryNumber <= 0) {
+        return `${expiry}`;
+      }
+      const date = new Date(expiryNumber * 1000);
+      return `${expiry} (${date.toISOString()})`;
+    }
+
+    function parsePagination(value, label) {
+      const sanitized = requireValue(value, label);
+      const parsed = Number(sanitized);
+      if (!Number.isFinite(parsed) || parsed < 0) {
+        throw new Error(`${label} must be a non-negative number.`);
+      }
+      return BigInt(Math.trunc(parsed));
     }
 
     // === WALLET CONNECTION LOGIC ===
@@ -548,12 +791,102 @@
           show(
             `Participant details for ${account}\n`
             + `Whitelisted: ${participant[0]}\n`
-            + `Role: ${participant[1]}\n`
-            + `KYC expiry: ${participant[2]}\n`
+            + `Role: ${formatRole(participant[1])}\n`
+            + `KYC expiry: ${formatExpiry(participant[2])}\n`
             + `Frozen: ${participant[3]}`
           );
         } catch (err) {
           show('Lookup failed:\n' + (err.message || err));
+        }
+      };
+
+      document.getElementById('current-role-btn').onclick = async () => {
+        try {
+          show('Fetching current role...');
+          await switchNetwork();
+          await ensureCorrectNetwork();
+          const account = requireValue(document.getElementById('current-role-account').value.trim(), 'Account address');
+          const role = await registry.participantRole(account);
+          show(`Current role for ${account}\nRole: ${formatRole(role)}`);
+        } catch (err) {
+          show('Current role lookup failed:\n' + (err.message || err));
+        }
+      };
+
+      document.getElementById('check-role-btn').onclick = async () => {
+        try {
+          show('Checking role...');
+          await switchNetwork();
+          await ensureCorrectNetwork();
+          const account = requireValue(document.getElementById('check-role-account').value.trim(), 'Account address');
+          const roleValue = parseRole(document.getElementById('check-role-value').value.trim());
+          const hasRole = await registry.hasParticipantRole(account, roleValue);
+          show(`Role check for ${account}\nRole: ${formatRole(roleValue)}\nHas role: ${hasRole}`);
+        } catch (err) {
+          show('Role check failed:\n' + (err.message || err));
+        }
+      };
+
+      document.getElementById('allowed-btn').onclick = async () => {
+        try {
+          show('Checking allowlist...');
+          await switchNetwork();
+          await ensureCorrectNetwork();
+          const account = requireValue(document.getElementById('allowed-account').value.trim(), 'Account address');
+          const allowed = await registry.isAllowedToTransact(account);
+          show(`Allowed to transact for ${account}\nAllowed: ${allowed}`);
+        } catch (err) {
+          show('Allowlist check failed:\n' + (err.message || err));
+        }
+      };
+
+      document.getElementById('state-btn').onclick = async () => {
+        try {
+          show('Fetching participant state...');
+          await switchNetwork();
+          await ensureCorrectNetwork();
+          const account = requireValue(document.getElementById('state-account').value.trim(), 'Account address');
+          const [whitelisted, role, expiry, frozen, allowed] = await Promise.all([
+            registry.isWhitelisted(account),
+            registry.participantRole(account),
+            registry.kycExpiry(account),
+            registry.isFrozen(account),
+            registry.isAllowedToTransact(account)
+          ]);
+          const syncEnabled = await registry.precompileSyncEnabled();
+          show(
+            `Participant state for ${account}\n`
+            + `Whitelisted: ${whitelisted}\n`
+            + `Role: ${formatRole(role)}\n`
+            + `KYC expiry: ${formatExpiry(expiry)}\n`
+            + `Frozen: ${frozen}\n`
+            + `Allowed to transact: ${allowed}\n`
+            + `Precompile sync enabled: ${syncEnabled}`
+          );
+        } catch (err) {
+          show('Participant state failed:\n' + (err.message || err));
+        }
+      };
+
+      document.getElementById('participants-btn').onclick = async () => {
+        try {
+          show('Fetching participants...');
+          await switchNetwork();
+          await ensureCorrectNetwork();
+          const offset = parsePagination(document.getElementById('participants-offset').value.trim(), 'Offset');
+          const limit = parsePagination(document.getElementById('participants-limit').value.trim(), 'Limit');
+          const [participants, total] = await Promise.all([
+            registry.getParticipants(offset, limit),
+            registry.participantCount()
+          ]);
+          const formatted = participants.length ? participants.join('\n') : 'No participants found for this range.';
+          show(
+            `Participants (${offset} - ${offset + limit - 1n})\n`
+            + `Total registered: ${total}\n`
+            + `${formatted}`
+          );
+        } catch (err) {
+          show('Participants fetch failed:\n' + (err.message || err));
         }
       };
 
