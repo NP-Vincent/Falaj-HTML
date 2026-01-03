@@ -7,7 +7,7 @@
     body { font-family: sans-serif; margin: auto; }
     #msg { white-space: pre-wrap; }
     #qr { margin: 20px 0; }
-    #connect-btn, #pay-btn, #disconnect-btn, #network-select {
+    #connect-btn, #pay-btn, #disconnect-btn {
       margin: 5px;
     }
   </style>
@@ -16,7 +16,6 @@
   <h3 id="prop-title"></h3>
   <p id="price-aed"></p>
   <p id="price-usd"></p>
-  <select id="network-select"></select>
   <button id="connect-btn">Connect Wallet</button>
   <button id="disconnect-btn" style="display:none;">Disconnect</button>
   <button id="pay-btn" disabled>Pay</button>
@@ -24,58 +23,1143 @@
   <pre id="msg"></pre>
 
   <script src="https://cdn.jsdelivr.net/npm/ethers@6/dist/ethers.umd.min.js"></script>
-  <script src="https://unpkg.com/@walletconnect/web3-provider@1/dist/umd/index.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
   <script>
     // === CONFIGURATION ===
-    const PAYMENT_OPTIONS = [
-      { token: 'USDT', name: 'Ethereum', chainId: 1, rpc: 'https://rpc.ankr.com/eth', address: '0xdAC17F958D2ee523a2206206994597C13D831ec7', decimals: 6 },
-      { token: 'USDC', name: 'Arbitrum', chainId: 42161, rpc: 'https://arb1.arbitrum.io/rpc', address: '0xaf88d065e77c8cC2239327C5EDb3A432268e5831', decimals: 6 },
-      { token: 'USDC', name: 'Polygon', chainId: 137, rpc: 'https://polygon-rpc.com', address: '0x3c499c542cEF5E3811e1192ce70d8cC03d5c3359', decimals: 6 },
-      { token: 'USDT', name: 'Scroll', chainId: 534352, rpc: 'https://rpc.scroll.io', address: '0xf55BEC9cafDbE8730f096Aa55dad6D22d44099Df', decimals: 6 },
-      { token: 'USDC', name: 'Scroll', chainId: 534352, rpc: 'https://rpc.scroll.io', address: '0x06eFdBFf2a14a7c8E15944D1F4A48F9F95F663A4', decimals: 6 }
-    ];
-
-    const EXPLORERS = {
-      1: 'https://etherscan.io',
-      42161: 'https://arbiscan.io',
-      137: 'https://polygonscan.com',
-      534352: 'https://scrollscan.com'
+    const FALAJ_NETWORK = {
+      chainId: 75417,
+      chainName: 'Falaj Testnet',
+      rpcUrls: ['https://nodes-prod.18.182.4.86.sslip.io/ext/bc/H3hnSLUCbiQaY92f34SyiUFCpfiHqm1HkGtig5BDBKKk3ZJYB/rpc'],
+      nativeCurrency: { name: 'E-AED', symbol: 'E-AED', decimals: 18 },
+      blockExplorerUrls: ['https://build.avax.network/explorer/H3hnSLUCbiQaY92f34SyiUFCpfiHqm1HkGtig5BDBKKk3ZJYB']
     };
 
-    const DEST = '0x43F3f03d89290358034993aE3B3938D056D76De2';
+    const EXPLORER_BASE = 'https://build.avax.network/explorer/H3hnSLUCbiQaY92f34SyiUFCpfiHqm1HkGtig5BDBKKk3ZJYB';
 
-    const CHAIN_INFO = {
-      1: {
-        chainName: 'Ethereum',
-        rpcUrls: ['https://rpc.ankr.com/eth'],
-        nativeCurrency: { name: 'Ether', symbol: 'ETH', decimals: 18 },
-        blockExplorerUrls: ['https://etherscan.io']
+    const DESTINATION_ADDRESS = '0x43F3f03d89290358034993aE3B3938D056D76De2';
+
+    const AED_STABLECOIN_ADDRESS = '0xa5be895EB6DD499b688AE4bD42Fd78500cE24b0F';
+    const AED_STABLECOIN_ABI = [
+      {
+        "inputs": [
+          {
+            "internalType": "address",
+            "name": "spender",
+            "type": "address"
+          },
+          {
+            "internalType": "uint256",
+            "name": "value",
+            "type": "uint256"
+          }
+        ],
+        "name": "approve",
+        "outputs": [
+          {
+            "internalType": "bool",
+            "name": "",
+            "type": "bool"
+          }
+        ],
+        "stateMutability": "nonpayable",
+        "type": "function"
       },
-      137: {
-        chainName: 'Polygon',
-        rpcUrls: ['https://polygon-rpc.com'],
-        nativeCurrency: { name: 'Matic', symbol: 'MATIC', decimals: 18 },
-        blockExplorerUrls: ['https://polygonscan.com']
+      {
+        "inputs": [],
+        "stateMutability": "nonpayable",
+        "type": "constructor"
       },
-      42161: {
-        chainName: 'Arbitrum One',
-        rpcUrls: ['https://arb1.arbitrum.io/rpc'],
-        nativeCurrency: { name: 'Ether', symbol: 'ETH', decimals: 18 },
-        blockExplorerUrls: ['https://arbiscan.io']
+      {
+        "inputs": [],
+        "name": "AccessControlBadConfirmation",
+        "type": "error"
       },
-      534352: {
-        chainName: 'Scroll',
-        rpcUrls: ['https://rpc.scroll.io'],
-        nativeCurrency: { name: 'Ether', symbol: 'ETH', decimals: 18 },
-        blockExplorerUrls: ['https://scrollscan.com']
+      {
+        "inputs": [
+          {
+            "internalType": "address",
+            "name": "account",
+            "type": "address"
+          },
+          {
+            "internalType": "bytes32",
+            "name": "neededRole",
+            "type": "bytes32"
+          }
+        ],
+        "name": "AccessControlUnauthorizedAccount",
+        "type": "error"
+      },
+      {
+        "inputs": [
+          {
+            "internalType": "address",
+            "name": "account",
+            "type": "address"
+          }
+        ],
+        "name": "AccountIsFrozen",
+        "type": "error"
+      },
+      {
+        "inputs": [
+          {
+            "internalType": "address",
+            "name": "target",
+            "type": "address"
+          }
+        ],
+        "name": "AddressEmptyCode",
+        "type": "error"
+      },
+      {
+        "inputs": [
+          {
+            "internalType": "address",
+            "name": "implementation",
+            "type": "address"
+          }
+        ],
+        "name": "ERC1967InvalidImplementation",
+        "type": "error"
+      },
+      {
+        "inputs": [],
+        "name": "ERC1967NonPayable",
+        "type": "error"
+      },
+      {
+        "inputs": [
+          {
+            "internalType": "address",
+            "name": "spender",
+            "type": "address"
+          },
+          {
+            "internalType": "uint256",
+            "name": "allowance",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "needed",
+            "type": "uint256"
+          }
+        ],
+        "name": "ERC20InsufficientAllowance",
+        "type": "error"
+      },
+      {
+        "inputs": [
+          {
+            "internalType": "address",
+            "name": "sender",
+            "type": "address"
+          },
+          {
+            "internalType": "uint256",
+            "name": "balance",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "needed",
+            "type": "uint256"
+          }
+        ],
+        "name": "ERC20InsufficientBalance",
+        "type": "error"
+      },
+      {
+        "inputs": [
+          {
+            "internalType": "address",
+            "name": "approver",
+            "type": "address"
+          }
+        ],
+        "name": "ERC20InvalidApprover",
+        "type": "error"
+      },
+      {
+        "inputs": [
+          {
+            "internalType": "address",
+            "name": "receiver",
+            "type": "address"
+          }
+        ],
+        "name": "ERC20InvalidReceiver",
+        "type": "error"
+      },
+      {
+        "inputs": [
+          {
+            "internalType": "address",
+            "name": "sender",
+            "type": "address"
+          }
+        ],
+        "name": "ERC20InvalidSender",
+        "type": "error"
+      },
+      {
+        "inputs": [
+          {
+            "internalType": "address",
+            "name": "spender",
+            "type": "address"
+          }
+        ],
+        "name": "ERC20InvalidSpender",
+        "type": "error"
+      },
+      {
+        "inputs": [],
+        "name": "EnforcedPause",
+        "type": "error"
+      },
+      {
+        "inputs": [],
+        "name": "ExpectedPause",
+        "type": "error"
+      },
+      {
+        "inputs": [],
+        "name": "FailedCall",
+        "type": "error"
+      },
+      {
+        "inputs": [],
+        "name": "InvalidInitialization",
+        "type": "error"
+      },
+      {
+        "inputs": [
+          {
+            "internalType": "address",
+            "name": "account",
+            "type": "address"
+          }
+        ],
+        "name": "KYCExpired",
+        "type": "error"
+      },
+      {
+        "inputs": [],
+        "name": "NotAuthorizedForUpgrade",
+        "type": "error"
+      },
+      {
+        "inputs": [],
+        "name": "NotInitializing",
+        "type": "error"
+      },
+      {
+        "inputs": [
+          {
+            "internalType": "address",
+            "name": "account",
+            "type": "address"
+          }
+        ],
+        "name": "NotWhitelisted",
+        "type": "error"
+      },
+      {
+        "inputs": [
+          {
+            "internalType": "address",
+            "name": "from",
+            "type": "address"
+          },
+          {
+            "internalType": "address",
+            "name": "to",
+            "type": "address"
+          }
+        ],
+        "name": "TransferNotAllowed",
+        "type": "error"
+      },
+      {
+        "inputs": [],
+        "name": "UUPSUnauthorizedCallContext",
+        "type": "error"
+      },
+      {
+        "inputs": [
+          {
+            "internalType": "bytes32",
+            "name": "slot",
+            "type": "bytes32"
+          }
+        ],
+        "name": "UUPSUnsupportedProxiableUUID",
+        "type": "error"
+      },
+      {
+        "inputs": [],
+        "name": "ZeroAddress",
+        "type": "error"
+      },
+      {
+        "inputs": [],
+        "name": "ZeroAmount",
+        "type": "error"
+      },
+      {
+        "anonymous": false,
+        "inputs": [
+          {
+            "indexed": true,
+            "internalType": "address",
+            "name": "account",
+            "type": "address"
+          },
+          {
+            "indexed": true,
+            "internalType": "address",
+            "name": "frozenBy",
+            "type": "address"
+          }
+        ],
+        "name": "AccountFrozen",
+        "type": "event"
+      },
+      {
+        "anonymous": false,
+        "inputs": [
+          {
+            "indexed": true,
+            "internalType": "address",
+            "name": "account",
+            "type": "address"
+          },
+          {
+            "indexed": true,
+            "internalType": "address",
+            "name": "unfrozenBy",
+            "type": "address"
+          }
+        ],
+        "name": "AccountUnfrozen",
+        "type": "event"
+      },
+      {
+        "anonymous": false,
+        "inputs": [
+          {
+            "indexed": true,
+            "internalType": "address",
+            "name": "owner",
+            "type": "address"
+          },
+          {
+            "indexed": true,
+            "internalType": "address",
+            "name": "spender",
+            "type": "address"
+          },
+          {
+            "indexed": false,
+            "internalType": "uint256",
+            "name": "value",
+            "type": "uint256"
+          }
+        ],
+        "name": "Approval",
+        "type": "event"
+      },
+      {
+        "inputs": [
+          {
+            "internalType": "uint256",
+            "name": "value",
+            "type": "uint256"
+          }
+        ],
+        "name": "burn",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+      },
+      {
+        "anonymous": false,
+        "inputs": [
+          {
+            "indexed": true,
+            "internalType": "address",
+            "name": "from",
+            "type": "address"
+          },
+          {
+            "indexed": false,
+            "internalType": "uint256",
+            "name": "amount",
+            "type": "uint256"
+          },
+          {
+            "indexed": true,
+            "internalType": "address",
+            "name": "burner",
+            "type": "address"
+          }
+        ],
+        "name": "Burn",
+        "type": "event"
+      },
+      {
+        "inputs": [
+          {
+            "internalType": "address",
+            "name": "from",
+            "type": "address"
+          },
+          {
+            "internalType": "uint256",
+            "name": "amount",
+            "type": "uint256"
+          }
+        ],
+        "name": "burnFrom",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+      },
+      {
+        "inputs": [
+          {
+            "internalType": "address",
+            "name": "from",
+            "type": "address"
+          },
+          {
+            "internalType": "address",
+            "name": "to",
+            "type": "address"
+          },
+          {
+            "internalType": "uint256",
+            "name": "amount",
+            "type": "uint256"
+          }
+        ],
+        "name": "emergencyTransfer",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+      },
+      {
+        "anonymous": false,
+        "inputs": [
+          {
+            "indexed": true,
+            "internalType": "address",
+            "name": "to",
+            "type": "address"
+          },
+          {
+            "indexed": false,
+            "internalType": "uint256",
+            "name": "amount",
+            "type": "uint256"
+          }
+        ],
+        "name": "EmergencyWithdrawal",
+        "type": "event"
+      },
+      {
+        "inputs": [
+          {
+            "internalType": "address",
+            "name": "account",
+            "type": "address"
+          }
+        ],
+        "name": "freezeAccount",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+      },
+      {
+        "inputs": [
+          {
+            "internalType": "bytes32",
+            "name": "role",
+            "type": "bytes32"
+          },
+          {
+            "internalType": "address",
+            "name": "account",
+            "type": "address"
+          }
+        ],
+        "name": "grantRole",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+      },
+      {
+        "inputs": [
+          {
+            "internalType": "address",
+            "name": "_identityRegistry",
+            "type": "address"
+          }
+        ],
+        "name": "initialize",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+      },
+      {
+        "anonymous": false,
+        "inputs": [
+          {
+            "indexed": false,
+            "internalType": "uint64",
+            "name": "version",
+            "type": "uint64"
+          }
+        ],
+        "name": "Initialized",
+        "type": "event"
+      },
+      {
+        "inputs": [
+          {
+            "internalType": "address",
+            "name": "to",
+            "type": "address"
+          },
+          {
+            "internalType": "uint256",
+            "name": "amount",
+            "type": "uint256"
+          }
+        ],
+        "name": "mint",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+      },
+      {
+        "anonymous": false,
+        "inputs": [
+          {
+            "indexed": true,
+            "internalType": "address",
+            "name": "to",
+            "type": "address"
+          },
+          {
+            "indexed": false,
+            "internalType": "uint256",
+            "name": "amount",
+            "type": "uint256"
+          },
+          {
+            "indexed": true,
+            "internalType": "address",
+            "name": "minter",
+            "type": "address"
+          }
+        ],
+        "name": "Mint",
+        "type": "event"
+      },
+      {
+        "inputs": [],
+        "name": "pause",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+      },
+      {
+        "anonymous": false,
+        "inputs": [
+          {
+            "indexed": false,
+            "internalType": "address",
+            "name": "account",
+            "type": "address"
+          }
+        ],
+        "name": "Paused",
+        "type": "event"
+      },
+      {
+        "inputs": [
+          {
+            "internalType": "bytes32",
+            "name": "role",
+            "type": "bytes32"
+          },
+          {
+            "internalType": "address",
+            "name": "callerConfirmation",
+            "type": "address"
+          }
+        ],
+        "name": "renounceRole",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+      },
+      {
+        "inputs": [
+          {
+            "internalType": "bytes32",
+            "name": "role",
+            "type": "bytes32"
+          },
+          {
+            "internalType": "address",
+            "name": "account",
+            "type": "address"
+          }
+        ],
+        "name": "revokeRole",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+      },
+      {
+        "anonymous": false,
+        "inputs": [
+          {
+            "indexed": true,
+            "internalType": "bytes32",
+            "name": "role",
+            "type": "bytes32"
+          },
+          {
+            "indexed": true,
+            "internalType": "bytes32",
+            "name": "previousAdminRole",
+            "type": "bytes32"
+          },
+          {
+            "indexed": true,
+            "internalType": "bytes32",
+            "name": "newAdminRole",
+            "type": "bytes32"
+          }
+        ],
+        "name": "RoleAdminChanged",
+        "type": "event"
+      },
+      {
+        "anonymous": false,
+        "inputs": [
+          {
+            "indexed": true,
+            "internalType": "bytes32",
+            "name": "role",
+            "type": "bytes32"
+          },
+          {
+            "indexed": true,
+            "internalType": "address",
+            "name": "account",
+            "type": "address"
+          },
+          {
+            "indexed": true,
+            "internalType": "address",
+            "name": "sender",
+            "type": "address"
+          }
+        ],
+        "name": "RoleGranted",
+        "type": "event"
+      },
+      {
+        "anonymous": false,
+        "inputs": [
+          {
+            "indexed": true,
+            "internalType": "bytes32",
+            "name": "role",
+            "type": "bytes32"
+          },
+          {
+            "indexed": true,
+            "internalType": "address",
+            "name": "account",
+            "type": "address"
+          },
+          {
+            "indexed": true,
+            "internalType": "address",
+            "name": "sender",
+            "type": "address"
+          }
+        ],
+        "name": "RoleRevoked",
+        "type": "event"
+      },
+      {
+        "inputs": [
+          {
+            "internalType": "address",
+            "name": "to",
+            "type": "address"
+          },
+          {
+            "internalType": "uint256",
+            "name": "value",
+            "type": "uint256"
+          }
+        ],
+        "name": "transfer",
+        "outputs": [
+          {
+            "internalType": "bool",
+            "name": "",
+            "type": "bool"
+          }
+        ],
+        "stateMutability": "nonpayable",
+        "type": "function"
+      },
+      {
+        "anonymous": false,
+        "inputs": [
+          {
+            "indexed": true,
+            "internalType": "address",
+            "name": "from",
+            "type": "address"
+          },
+          {
+            "indexed": true,
+            "internalType": "address",
+            "name": "to",
+            "type": "address"
+          },
+          {
+            "indexed": false,
+            "internalType": "uint256",
+            "name": "value",
+            "type": "uint256"
+          }
+        ],
+        "name": "Transfer",
+        "type": "event"
+      },
+      {
+        "inputs": [
+          {
+            "internalType": "address",
+            "name": "from",
+            "type": "address"
+          },
+          {
+            "internalType": "address",
+            "name": "to",
+            "type": "address"
+          },
+          {
+            "internalType": "uint256",
+            "name": "value",
+            "type": "uint256"
+          }
+        ],
+        "name": "transferFrom",
+        "outputs": [
+          {
+            "internalType": "bool",
+            "name": "",
+            "type": "bool"
+          }
+        ],
+        "stateMutability": "nonpayable",
+        "type": "function"
+      },
+      {
+        "inputs": [
+          {
+            "internalType": "address",
+            "name": "account",
+            "type": "address"
+          }
+        ],
+        "name": "unfreezeAccount",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+      },
+      {
+        "inputs": [],
+        "name": "unpause",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+      },
+      {
+        "anonymous": false,
+        "inputs": [
+          {
+            "indexed": false,
+            "internalType": "address",
+            "name": "account",
+            "type": "address"
+          }
+        ],
+        "name": "Unpaused",
+        "type": "event"
+      },
+      {
+        "anonymous": false,
+        "inputs": [
+          {
+            "indexed": true,
+            "internalType": "address",
+            "name": "implementation",
+            "type": "address"
+          }
+        ],
+        "name": "Upgraded",
+        "type": "event"
+      },
+      {
+        "inputs": [
+          {
+            "internalType": "address",
+            "name": "newImplementation",
+            "type": "address"
+          },
+          {
+            "internalType": "bytes",
+            "name": "data",
+            "type": "bytes"
+          }
+        ],
+        "name": "upgradeToAndCall",
+        "outputs": [],
+        "stateMutability": "payable",
+        "type": "function"
+      },
+      {
+        "inputs": [
+          {
+            "internalType": "address",
+            "name": "owner",
+            "type": "address"
+          },
+          {
+            "internalType": "address",
+            "name": "spender",
+            "type": "address"
+          }
+        ],
+        "name": "allowance",
+        "outputs": [
+          {
+            "internalType": "uint256",
+            "name": "",
+            "type": "uint256"
+          }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+      },
+      {
+        "inputs": [
+          {
+            "internalType": "address",
+            "name": "account",
+            "type": "address"
+          }
+        ],
+        "name": "balanceOf",
+        "outputs": [
+          {
+            "internalType": "uint256",
+            "name": "",
+            "type": "uint256"
+          }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+      },
+      {
+        "inputs": [
+          {
+            "internalType": "address",
+            "name": "from",
+            "type": "address"
+          },
+          {
+            "internalType": "address",
+            "name": "to",
+            "type": "address"
+          }
+        ],
+        "name": "canTransfer",
+        "outputs": [
+          {
+            "internalType": "bool",
+            "name": "allowed",
+            "type": "bool"
+          },
+          {
+            "internalType": "string",
+            "name": "reason",
+            "type": "string"
+          }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+      },
+      {
+        "inputs": [],
+        "name": "circulatingSupply",
+        "outputs": [
+          {
+            "internalType": "uint256",
+            "name": "",
+            "type": "uint256"
+          }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+      },
+      {
+        "inputs": [],
+        "name": "decimals",
+        "outputs": [
+          {
+            "internalType": "uint8",
+            "name": "",
+            "type": "uint8"
+          }
+        ],
+        "stateMutability": "pure",
+        "type": "function"
+      },
+      {
+        "inputs": [],
+        "name": "DEFAULT_ADMIN_ROLE",
+        "outputs": [
+          {
+            "internalType": "bytes32",
+            "name": "",
+            "type": "bytes32"
+          }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+      },
+      {
+        "inputs": [
+          {
+            "internalType": "bytes32",
+            "name": "role",
+            "type": "bytes32"
+          }
+        ],
+        "name": "getRoleAdmin",
+        "outputs": [
+          {
+            "internalType": "bytes32",
+            "name": "",
+            "type": "bytes32"
+          }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+      },
+      {
+        "inputs": [
+          {
+            "internalType": "bytes32",
+            "name": "role",
+            "type": "bytes32"
+          },
+          {
+            "internalType": "address",
+            "name": "account",
+            "type": "address"
+          }
+        ],
+        "name": "hasRole",
+        "outputs": [
+          {
+            "internalType": "bool",
+            "name": "",
+            "type": "bool"
+          }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+      },
+      {
+        "inputs": [],
+        "name": "identityRegistry",
+        "outputs": [
+          {
+            "internalType": "contract IdentityRegistry",
+            "name": "",
+            "type": "address"
+          }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+      },
+      {
+        "inputs": [
+          {
+            "internalType": "address",
+            "name": "",
+            "type": "address"
+          }
+        ],
+        "name": "isFrozen",
+        "outputs": [
+          {
+            "internalType": "bool",
+            "name": "",
+            "type": "bool"
+          }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+      },
+      {
+        "inputs": [],
+        "name": "name",
+        "outputs": [
+          {
+            "internalType": "string",
+            "name": "",
+            "type": "string"
+          }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+      },
+      {
+        "inputs": [],
+        "name": "paused",
+        "outputs": [
+          {
+            "internalType": "bool",
+            "name": "",
+            "type": "bool"
+          }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+      },
+      {
+        "inputs": [],
+        "name": "proxiableUUID",
+        "outputs": [
+          {
+            "internalType": "bytes32",
+            "name": "",
+            "type": "bytes32"
+          }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+      },
+      {
+        "inputs": [
+          {
+            "internalType": "bytes4",
+            "name": "interfaceId",
+            "type": "bytes4"
+          }
+        ],
+        "name": "supportsInterface",
+        "outputs": [
+          {
+            "internalType": "bool",
+            "name": "",
+            "type": "bool"
+          }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+      },
+      {
+        "inputs": [],
+        "name": "symbol",
+        "outputs": [
+          {
+            "internalType": "string",
+            "name": "",
+            "type": "string"
+          }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+      },
+      {
+        "inputs": [],
+        "name": "totalBurned",
+        "outputs": [
+          {
+            "internalType": "uint256",
+            "name": "",
+            "type": "uint256"
+          }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+      },
+      {
+        "inputs": [],
+        "name": "totalMinted",
+        "outputs": [
+          {
+            "internalType": "uint256",
+            "name": "",
+            "type": "uint256"
+          }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+      },
+      {
+        "inputs": [],
+        "name": "totalSupply",
+        "outputs": [
+          {
+            "internalType": "uint256",
+            "name": "",
+            "type": "uint256"
+          }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+      },
+      {
+        "inputs": [],
+        "name": "UPGRADE_INTERFACE_VERSION",
+        "outputs": [
+          {
+            "internalType": "string",
+            "name": "",
+            "type": "string"
+          }
+        ],
+        "stateMutability": "view",
+        "type": "function"
       }
-    };
+    ];
 
     // === STATE ===
     let provider = null;
     let signer = null;
-    let currentWallet = null; // 'metamask' or 'walletconnect'
+    let currentWallet = null;
+    let stablecoin = null;
+    let tokenDecimals = 18;
+    let tokenSymbol = 'AED';
 
     // === UI UTILS ===
     function show(msg) {
@@ -92,103 +1176,81 @@
         provider = new ethers.BrowserProvider(window.ethereum);
         await provider.send('eth_requestAccounts', []);
         signer = await provider.getSigner();
+        stablecoin = new ethers.Contract(AED_STABLECOIN_ADDRESS, AED_STABLECOIN_ABI, signer);
         currentWallet = 'metamask';
         return;
       }
-      if (kind === 'walletconnect') {
-        const wc = new window.WalletConnectProvider.default({
-          rpc: Object.fromEntries(PAYMENT_OPTIONS.map(o => [o.chainId, o.rpc]))
-        });
-        await wc.enable();
-        provider = new ethers.BrowserProvider(wc);
-        signer = await provider.getSigner();
-        currentWallet = 'walletconnect';
-        return;
-      }
-      throw new Error('No wallet found');
+      throw new Error('MetaMask not found');
     }
 
     function disconnectWallet() {
-      if (currentWallet === 'walletconnect' && provider?.provider?.disconnect) {
-        provider.provider.disconnect();
-      }
       provider = null;
       signer = null;
       currentWallet = null;
+      stablecoin = null;
       enablePayBtn(false);
       document.getElementById('disconnect-btn').style.display = 'none';
       show('Wallet disconnected');
     }
 
     // === NETWORK SWITCHING ===
-    async function switchNetwork(token) {
-      if (currentWallet === 'metamask' && window.ethereum) {
-        const hex = ethers.toQuantity(token.chainId);
-        try {
+    async function switchNetwork() {
+      if (!window.ethereum) {
+        throw new Error('MetaMask not found');
+      }
+      const hex = ethers.toQuantity(FALAJ_NETWORK.chainId);
+      try {
+        await window.ethereum.request({
+          method: 'wallet_switchEthereumChain',
+          params: [{ chainId: hex }]
+        });
+      } catch (err) {
+        if (err.code === 4902) {
+          await window.ethereum.request({
+            method: 'wallet_addEthereumChain',
+            params: [{ chainId: hex, ...FALAJ_NETWORK }]
+          });
           await window.ethereum.request({
             method: 'wallet_switchEthereumChain',
             params: [{ chainId: hex }]
           });
-        } catch (err) {
-          if (err.code === 4902) {
-            // Not added yet, try to add
-            await window.ethereum.request({
-              method: 'wallet_addEthereumChain',
-              params: [{ chainId: hex, ...CHAIN_INFO[token.chainId] }]
-            });
-            // Then switch
-            await window.ethereum.request({
-              method: 'wallet_switchEthereumChain',
-              params: [{ chainId: hex }]
-            });
-          } else {
-            throw err;
-          }
+        } else {
+          throw err;
         }
-        provider = new ethers.BrowserProvider(window.ethereum);
-        signer = await provider.getSigner();
-        return;
       }
-
-      if (currentWallet === 'walletconnect') {
-        // WalletConnect handles network switching internally; make sure to refresh provider & signer
-        provider = new ethers.BrowserProvider(provider.provider);
-        signer = await provider.getSigner();
-        return;
-      }
-
-      throw new Error('No wallet/provider to switch network');
+      provider = new ethers.BrowserProvider(window.ethereum);
+      signer = await provider.getSigner();
+      stablecoin = new ethers.Contract(AED_STABLECOIN_ADDRESS, AED_STABLECOIN_ABI, signer);
     }
 
-    async function ensureCorrectNetwork(token) {
+    async function ensureCorrectNetwork() {
       if (!provider) throw new Error('No wallet/provider connected');
       const network = await provider.getNetwork();
-      if (Number(network.chainId) !== Number(token.chainId)) {
-        throw new Error(`Your wallet is on the wrong network. Please switch to ${token.name} (${token.chainId})`);
+      if (Number(network.chainId) !== Number(FALAJ_NETWORK.chainId)) {
+        throw new Error(`Your wallet is on the wrong network. Please switch to ${FALAJ_NETWORK.chainName} (${FALAJ_NETWORK.chainId}).`);
       }
     }
 
-    // === ERC-20 PAYMENT LOGIC ===
-    function getErc20(token) {
-      const abi = [
-        'function balanceOf(address) view returns (uint256)',
-        'function transfer(address,uint256) returns (bool)'
-      ];
-      return new ethers.Contract(token.address, abi, signer);
+    async function refreshTokenMetadata() {
+      if (!stablecoin || !signer) return;
+      const [decimals, symbol] = await Promise.all([
+        stablecoin.decimals(),
+        stablecoin.symbol()
+      ]);
+      tokenDecimals = Number(decimals);
+      tokenSymbol = symbol;
     }
 
-    async function sendToken(token, to, amt) {
-      await ensureCorrectNetwork(token);
-      const erc20 = getErc20(token);
-      const data = erc20.interface.encodeFunctionData(
-        'transfer',
-        [to, ethers.parseUnits(String(amt), token.decimals)]
-      );
-      const tx = await signer.sendTransaction({
-        to: token.address,
-        data,
-        gasLimit: 70000
-      });
+    async function getWalletBalance() {
+      if (!stablecoin || !signer) return null;
+      const address = await signer.getAddress();
+      const balance = await stablecoin.balanceOf(address);
+      return ethers.formatUnits(balance, tokenDecimals);
+    }
+
+    async function sendToken(to, amt) {
+      await ensureCorrectNetwork();
+      const tx = await stablecoin.transfer(to, ethers.parseUnits(String(amt), tokenDecimals));
       return tx.wait();
     }
 
@@ -200,32 +1262,22 @@
       document.getElementById('price-aed').textContent = params.get('aed') ? `AED ${params.get('aed')}` : '';
       document.getElementById('price-usd').textContent = params.get('usd') ? `USD ${params.get('usd')}` : '';
 
-      // Populate network selector
-      const select = document.getElementById('network-select');
-      PAYMENT_OPTIONS.forEach((o, i) => {
-        const opt = document.createElement('option');
-        opt.value = i;
-        opt.textContent = `${o.token} (${o.name})`;
-        select.appendChild(opt);
-      });
-
       // Setup QR code for manual payment
-      new QRCode(document.getElementById('qr'), DEST);
+      new QRCode(document.getElementById('qr'), DESTINATION_ADDRESS);
 
       // Connect Wallet
       document.getElementById('connect-btn').onclick = async () => {
         enablePayBtn(false);
         show('Connecting...');
         try {
-          // Connect wallet (MetaMask only here, could add WalletConnect as a dropdown/option)
           await setupWallet('metamask');
-          const option = PAYMENT_OPTIONS[select.value];
-          // Switch to selected network after connection
-          await switchNetwork(option);
-          await ensureCorrectNetwork(option);
+          await switchNetwork();
+          await ensureCorrectNetwork();
+          await refreshTokenMetadata();
+          const balance = await getWalletBalance();
           document.getElementById('disconnect-btn').style.display = '';
           document.getElementById('disconnect-btn').onclick = disconnectWallet;
-          show('Wallet connected to ' + option.name);
+          show(`Wallet connected to ${FALAJ_NETWORK.chainName}\nToken: ${tokenSymbol}\nBalance: ${balance ?? '0'} ${tokenSymbol}`);
           enablePayBtn(true);
         } catch (err) {
           show('Connection or network switch failed:\n' + (err.message || err));
@@ -236,37 +1288,21 @@
       // Pay
       document.getElementById('pay-btn').onclick = async () => {
         enablePayBtn(false);
-        const option = PAYMENT_OPTIONS[select.value];
-        const amount = Number(params.get('usd'));
+        const amountParam = params.get('aed') || params.get('usd');
+        const amount = Number(amountParam);
         try {
           show('Checking network...');
-          await switchNetwork(option);
-          await ensureCorrectNetwork(option);
+          await switchNetwork();
+          await ensureCorrectNetwork();
+          await refreshTokenMetadata();
           const network = await provider.getNetwork();
-          show(`Sending ${amount} ${option.token} to ${DEST} on chain ${network.chainId}...`);
-          const receipt = await sendToken(option, DEST, amount);
-          const link = `${EXPLORERS[option.chainId]}/tx/${receipt.transactionHash}`;
-          show(`✅ Sent ${amount} ${option.token} to ${DEST} on ${option.name}\n\nView transaction: ${link}`);
+          show(`Sending ${amount} ${tokenSymbol} to ${DESTINATION_ADDRESS} on chain ${network.chainId}...`);
+          const receipt = await sendToken(DESTINATION_ADDRESS, amount);
+          show(`✅ Sent ${amount} ${tokenSymbol} to ${DESTINATION_ADDRESS} on ${FALAJ_NETWORK.chainName}\n\nTransaction hash: ${receipt.transactionHash}\nExplorer: ${EXPLORER_BASE}`);
         } catch (err) {
           show('Payment failed:\n' + (err.message || err));
         }
         enablePayBtn(true);
-      };
-
-      // Network select: on change, try to switch wallet network if already connected
-      select.onchange = async () => {
-        if (provider && signer && currentWallet) {
-          const option = PAYMENT_OPTIONS[select.value];
-          try {
-            await switchNetwork(option);
-            await ensureCorrectNetwork(option);
-            show(`Switched to ${option.name}`);
-            enablePayBtn(true);
-          } catch (err) {
-            show('Network switch failed:\n' + (err.message || err));
-            enablePayBtn(false);
-          }
-        }
       };
 
       // Disconnect
