@@ -21,7 +21,7 @@
 
       <section>
         <h2>Read</h2>
-        <button type="button">Read contract owner/admin</button>
+        <button id="btnReadAdmin" type="button">Read contract owner/admin</button>
         <p>Owner/Admin: <span id="outOwner">-</span></p>
       </section>
 
@@ -29,8 +29,19 @@
         <h2>Status Check</h2>
         <label for="inputAddress">Address</label>
         <input id="inputAddress" type="text" placeholder="0x..." />
-        <button type="button">Check status</button>
+        <button id="btnCheckStatus" type="button">Check status</button>
         <p>Status: <span id="outStatus">-</span></p>
+      </section>
+
+      <section>
+        <h2>Actions</h2>
+        <label for="freezeAddress">Address</label>
+        <input id="freezeAddress" type="text" placeholder="0x..." />
+        <label for="freezeReason">Reason</label>
+        <input id="freezeReason" type="text" placeholder="Reason" />
+        <button id="btnFreeze" type="button">Freeze account</button>
+        <p>Tx Hash: <span id="outFreezeTx">-</span></p>
+        <p>Block: <span id="outFreezeBlock">-</span></p>
       </section>
     </main>
 
