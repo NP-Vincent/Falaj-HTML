@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Crypto Payment</title>
+  <style>
+    body { font-family: sans-serif; margin: auto; }
+    #msg { white-space: pre-wrap; }
+    #qr { margin: 20px 0; }
+    #connect-btn, #pay-btn, #disconnect-btn, #network-select {
+      margin: 5px;
+    }
+  </style>
+</head>
+<body>
+  <h3 id="prop-title"></h3>
+  <p id="price-aed"></p>
+  <p id="price-usd"></p>
+  <select id="network-select"></select>
+  <button id="connect-btn">Connect Wallet</button>
+  <button id="disconnect-btn" style="display:none;">Disconnect</button>
+  <button id="pay-btn" disabled>Pay</button>
+  <div id="qr"></div>
+  <pre id="msg"></pre>
+
+  <script src="https://cdn.jsdelivr.net/npm/ethers@6/dist/ethers.umd.min.js"></script>
+  <script src="https://unpkg.com/@walletconnect/web3-provider@1/dist/umd/index.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <script>
+    // === CONFIGURATION ===
+    const PAYMENT_OPTIONS = [
+      { token: 'USDT', name: 'Ethereum', chainId: 1, rpc: 'https://rpc.ankr.com/eth', address: '0xdAC17F958D2ee523a2206206994597C13D831ec7', decimals: 6 },
+      { token: 'USDC', name: 'Arbitrum', chainId: 42161, rpc: 'https://arb1.arbitrum.io/rpc', address: '0xaf88d065e77c8cC2239327C5EDb3A432268e5831', decimals: 6 },
+      { token: 'USDC', name: 'Polygon', chainId: 137, rpc: 'https://polygon-rpc.com', address: '0x3c499c542cEF5E3811e1192ce70d8cC03d5c3359', decimals: 6 },
+      { token: 'USDT', name: 'Scroll', chainId: 534352, rpc: 'https://rpc.scroll.io', address: '0xf55BEC9cafDbE8730f096Aa55dad6D22d44099Df', decimals: 6 },
+      { token: 'USDC', name: 'Scroll', chainId: 534352, rpc: 'https://rpc.scroll.io', address: '0x06eFdBFf2a14a7c8E15944D1F4A48F9F95F663A4', decimals: 6 }
+    ];
+
+    const EXPLORERS = {
+      1: 'https://etherscan.io',
+      42161: 'https://arbiscan.io',
+      137: 'https://polygonscan.com',
+      534352: 'https://scrollscan.com'
+    };
+
+    const DEST = '0x43F3f03d89290358034993aE3B3938D056D76De2';
+
+    const CHAIN_INFO = {
+      1: {
+        chainName: 'Ethereum',
+        rpcUrls: ['https://rpc.ankr.com/eth'],
+        nativeCurrency: { name: 'Ether', symbol: 'ETH', decimals: 18 },
+        blockExplorerUrls: ['https://etherscan.io']
+      },
+      137: {
+        chainName: 'Polygon',
+        rpcUrls: ['https://polygon-rpc.com'],
+        nativeCurrency: { name: 'Matic', symbol: 'MATIC', decimals: 18 },
+        blockExplorerUrls: ['https://polygonscan.com']
+      },
+      42161: {
+        chainName: 'Arbitrum One',
+        rpcUrls: ['https://arb1.arbitrum.io/rpc'],
+        nativeCurrency: { name: 'Ether', symbol: 'ETH', decimals: 18 },
+        blockExplorerUrls: ['https://arbiscan.io']
+      },
+      534352: {
+        chainName: 'Scroll',
+        rpcUrls: ['https://rpc.scroll.io'],
+        nativeCurrency: { name: 'Ether', symbol: 'ETH', decimals: 18 },
+        blockExplorerUrls: ['https://scrollscan.com']
+      }
+    };
+
+    // === STATE ===
+    let provider = null;
+    let signer = null;
+    let currentWallet = null; // 'metamask' or 'walletconnect'
+
+    // === UI UTILS ===
+    function show(msg) {
+      document.getElementById('msg').textContent = msg;
+    }
+
+    function enablePayBtn(enabled) {
+      document.getElementById('pay-btn').disabled = !enabled;
+    }
+
+    // === WALLET CONNECTION LOGIC ===
+    async function setupWallet(kind) {
+      if (kind === 'metamask' && window.ethereum) {
+        provider = new ethers.BrowserProvider(window.ethereum);
+        await provider.send('eth_requestAccounts', []);
+        signer = await provider.getSigner();
+        currentWallet = 'metamask';
+        return;
+      }
+      if (kind === 'walletconnect') {
+        const wc = new window.WalletConnectProvider.default({
+          rpc: Object.fromEntries(PAYMENT_OPTIONS.map(o => [o.chainId, o.rpc]))
+        });
+        await wc.enable();
+        provider = new ethers.BrowserProvider(wc);
+        signer = await provider.getSigner();
+        currentWallet = 'walletconnect';
+        return;
+      }
+      throw new Error('No wallet found');
+    }
+
+    function disconnectWallet() {
+      if (currentWallet === 'walletconnect' && provider?.provider?.disconnect) {
+        provider.provider.disconnect();
+      }
+      provider = null;
+      signer = null;
+      currentWallet = null;
+      enablePayBtn(false);
+      document.getElementById('disconnect-btn').style.display = 'none';
+      show('Wallet disconnected');
+    }
+
+    // === NETWORK SWITCHING ===
+    async function switchNetwork(token) {
+      if (currentWallet === 'metamask' && window.ethereum) {
+        const hex = ethers.toQuantity(token.chainId);
+        try {
+          await window.ethereum.request({
+            method: 'wallet_switchEthereumChain',
+            params: [{ chainId: hex }]
+          });
+        } catch (err) {
+          if (err.code === 4902) {
+            // Not added yet, try to add
+            await window.ethereum.request({
+              method: 'wallet_addEthereumChain',
+              params: [{ chainId: hex, ...CHAIN_INFO[token.chainId] }]
+            });
+            // Then switch
+            await window.ethereum.request({
+              method: 'wallet_switchEthereumChain',
+              params: [{ chainId: hex }]
+            });
+          } else {
+            throw err;
+          }
+        }
+        provider = new ethers.BrowserProvider(window.ethereum);
+        signer = await provider.getSigner();
+        return;
+      }
+
+      if (currentWallet === 'walletconnect') {
+        // WalletConnect handles network switching internally; make sure to refresh provider & signer
+        provider = new ethers.BrowserProvider(provider.provider);
+        signer = await provider.getSigner();
+        return;
+      }
+
+      throw new Error('No wallet/provider to switch network');
+    }
+
+    async function ensureCorrectNetwork(token) {
+      if (!provider) throw new Error('No wallet/provider connected');
+      const network = await provider.getNetwork();
+      if (Number(network.chainId) !== Number(token.chainId)) {
+        throw new Error(`Your wallet is on the wrong network. Please switch to ${token.name} (${token.chainId})`);
+      }
+    }
+
+    // === ERC-20 PAYMENT LOGIC ===
+    function getErc20(token) {
+      const abi = [
+        'function balanceOf(address) view returns (uint256)',
+        'function transfer(address,uint256) returns (bool)'
+      ];
+      return new ethers.Contract(token.address, abi, signer);
+    }
+
+    async function sendToken(token, to, amt) {
+      await ensureCorrectNetwork(token);
+      const erc20 = getErc20(token);
+      const data = erc20.interface.encodeFunctionData(
+        'transfer',
+        [to, ethers.parseUnits(String(amt), token.decimals)]
+      );
+      const tx = await signer.sendTransaction({
+        to: token.address,
+        data,
+        gasLimit: 70000
+      });
+      return tx.wait();
+    }
+
+    // === MAIN UI HANDLING ===
+    document.addEventListener('DOMContentLoaded', async () => {
+      // Setup UI with params
+      const params = new URLSearchParams(location.search);
+      document.getElementById('prop-title').textContent = params.get('title') || '';
+      document.getElementById('price-aed').textContent = params.get('aed') ? `AED ${params.get('aed')}` : '';
+      document.getElementById('price-usd').textContent = params.get('usd') ? `USD ${params.get('usd')}` : '';
+
+      // Populate network selector
+      const select = document.getElementById('network-select');
+      PAYMENT_OPTIONS.forEach((o, i) => {
+        const opt = document.createElement('option');
+        opt.value = i;
+        opt.textContent = `${o.token} (${o.name})`;
+        select.appendChild(opt);
+      });
+
+      // Setup QR code for manual payment
+      new QRCode(document.getElementById('qr'), DEST);
+
+      // Connect Wallet
+      document.getElementById('connect-btn').onclick = async () => {
+        enablePayBtn(false);
+        show('Connecting...');
+        try {
+          // Connect wallet (MetaMask only here, could add WalletConnect as a dropdown/option)
+          await setupWallet('metamask');
+          const option = PAYMENT_OPTIONS[select.value];
+          // Switch to selected network after connection
+          await switchNetwork(option);
+          await ensureCorrectNetwork(option);
+          document.getElementById('disconnect-btn').style.display = '';
+          document.getElementById('disconnect-btn').onclick = disconnectWallet;
+          show('Wallet connected to ' + option.name);
+          enablePayBtn(true);
+        } catch (err) {
+          show('Connection or network switch failed:\n' + (err.message || err));
+          disconnectWallet();
+        }
+      };
+
+      // Pay
+      document.getElementById('pay-btn').onclick = async () => {
+        enablePayBtn(false);
+        const option = PAYMENT_OPTIONS[select.value];
+        const amount = Number(params.get('usd'));
+        try {
+          show('Checking network...');
+          await switchNetwork(option);
+          await ensureCorrectNetwork(option);
+          const network = await provider.getNetwork();
+          show(`Sending ${amount} ${option.token} to ${DEST} on chain ${network.chainId}...`);
+          const receipt = await sendToken(option, DEST, amount);
+          const link = `${EXPLORERS[option.chainId]}/tx/${receipt.transactionHash}`;
+          show(`✅ Sent ${amount} ${option.token} to ${DEST} on ${option.name}\n\nView transaction: ${link}`);
+        } catch (err) {
+          show('Payment failed:\n' + (err.message || err));
+        }
+        enablePayBtn(true);
+      };
+
+      // Network select: on change, try to switch wallet network if already connected
+      select.onchange = async () => {
+        if (provider && signer && currentWallet) {
+          const option = PAYMENT_OPTIONS[select.value];
+          try {
+            await switchNetwork(option);
+            await ensureCorrectNetwork(option);
+            show(`Switched to ${option.name}`);
+            enablePayBtn(true);
+          } catch (err) {
+            show('Network switch failed:\n' + (err.message || err));
+            enablePayBtn(false);
+          }
+        }
+      };
+
+      // Disconnect
+      document.getElementById('disconnect-btn').onclick = disconnectWallet;
+    });
+  </script>
+</body>
+</html>
