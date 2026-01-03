@@ -69,7 +69,12 @@ function setActionButtonsEnabled(enabled) {
     'pause-btn',
     'unpause-btn',
     'precompile-btn',
+    'grant-role-btn',
+    'revoke-role-btn',
+    'renounce-role-btn',
     'lookup-btn',
+    'role-admin-btn',
+    'has-role-btn',
     'current-role-btn',
     'check-role-btn',
     'allowed-btn',
@@ -325,6 +330,54 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   };
 
+  document.getElementById('grant-role-btn').onclick = async () => {
+    try {
+      show('Granting role...');
+      await switchNetwork(FALAJ_NETWORK);
+      await ensureCorrectNetwork(FALAJ_NETWORK);
+      await syncRegistryWithSigner();
+      const account = requireValue(document.getElementById('grant-role-account').value.trim(), 'Account address');
+      const roleValue = parseRole(document.getElementById('grant-role-value').value.trim());
+      const tx = await registry.grantRole(roleValue, account);
+      const receipt = await tx.wait();
+      show(`✅ Role granted\nRole: ${formatRole(roleValue)}\nAccount: ${account}\nTx hash: ${receipt.transactionHash}\nExplorer: ${EXPLORER_BASE}`);
+    } catch (err) {
+      show('Grant role failed:\n' + (err.message || err));
+    }
+  };
+
+  document.getElementById('revoke-role-btn').onclick = async () => {
+    try {
+      show('Revoking role...');
+      await switchNetwork(FALAJ_NETWORK);
+      await ensureCorrectNetwork(FALAJ_NETWORK);
+      await syncRegistryWithSigner();
+      const account = requireValue(document.getElementById('revoke-role-account').value.trim(), 'Account address');
+      const roleValue = parseRole(document.getElementById('revoke-role-value').value.trim());
+      const tx = await registry.revokeRole(roleValue, account);
+      const receipt = await tx.wait();
+      show(`✅ Role revoked\nRole: ${formatRole(roleValue)}\nAccount: ${account}\nTx hash: ${receipt.transactionHash}\nExplorer: ${EXPLORER_BASE}`);
+    } catch (err) {
+      show('Revoke role failed:\n' + (err.message || err));
+    }
+  };
+
+  document.getElementById('renounce-role-btn').onclick = async () => {
+    try {
+      show('Renouncing role...');
+      await switchNetwork(FALAJ_NETWORK);
+      await ensureCorrectNetwork(FALAJ_NETWORK);
+      await syncRegistryWithSigner();
+      const account = requireValue(document.getElementById('renounce-role-account').value.trim(), 'Account address');
+      const roleValue = parseRole(document.getElementById('renounce-role-value').value.trim());
+      const tx = await registry.renounceRole(roleValue, account);
+      const receipt = await tx.wait();
+      show(`✅ Role renounced\nRole: ${formatRole(roleValue)}\nAccount: ${account}\nTx hash: ${receipt.transactionHash}\nExplorer: ${EXPLORER_BASE}`);
+    } catch (err) {
+      show('Renounce role failed:\n' + (err.message || err));
+    }
+  };
+
   document.getElementById('lookup-btn').onclick = async () => {
     try {
       show('Fetching participant...');
@@ -342,6 +395,35 @@ document.addEventListener('DOMContentLoaded', async () => {
       );
     } catch (err) {
       show('Lookup failed:\n' + (err.message || err));
+    }
+  };
+
+  document.getElementById('role-admin-btn').onclick = async () => {
+    try {
+      show('Fetching role admin...');
+      await switchNetwork(FALAJ_NETWORK);
+      await ensureCorrectNetwork(FALAJ_NETWORK);
+      await syncRegistryWithSigner();
+      const roleValue = parseRole(document.getElementById('role-admin-value').value.trim());
+      const adminRole = await registry.getRoleAdmin(roleValue);
+      show(`Role admin\nRole: ${formatRole(roleValue)}\nAdmin role: ${formatRole(adminRole)}`);
+    } catch (err) {
+      show('Get role admin failed:\n' + (err.message || err));
+    }
+  };
+
+  document.getElementById('has-role-btn').onclick = async () => {
+    try {
+      show('Checking role membership...');
+      await switchNetwork(FALAJ_NETWORK);
+      await ensureCorrectNetwork(FALAJ_NETWORK);
+      await syncRegistryWithSigner();
+      const account = requireValue(document.getElementById('has-role-account').value.trim(), 'Account address');
+      const roleValue = parseRole(document.getElementById('has-role-value').value.trim());
+      const hasRole = await registry.hasRole(roleValue, account);
+      show(`Has role\nRole: ${formatRole(roleValue)}\nAccount: ${account}\nHas role: ${hasRole}`);
+    } catch (err) {
+      show('Has role check failed:\n' + (err.message || err));
     }
   };
 
