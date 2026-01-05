@@ -4,6 +4,7 @@ This repository hosts lightweight HTML + JavaScript interfaces for interacting w
 
 ## What's here
 
+- `index.html` – a landing page that links to the contract interfaces.
 - `IdentityRegistry.html` – a standalone interface for the `IdentityRegistry` contract.
 - `AEDStablecoin.html` – a standalone interface for the `AEDStablecoin` contract.
 - `BondToken.html` – a standalone interface for the `BondToken` contract.
@@ -22,6 +23,7 @@ python3 -m http.server 8000
 
 Then open:
 
+- `http://localhost:8000/`
 - `http://localhost:8000/IdentityRegistry.html`
 - `http://localhost:8000/AEDStablecoin.html`
 - `http://localhost:8000/BondToken.html`

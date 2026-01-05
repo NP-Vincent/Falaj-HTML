@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Falaj Contract Interfaces</title>
+  <style>
+    :root {
+      color-scheme: light;
+      font-family: "Inter", "Segoe UI", sans-serif;
+      line-height: 1.6;
+      background-color: #f7f7f8;
+      color: #1a1a1a;
+    }
+
+    body {
+      margin: 0;
+      padding: 48px 24px;
+    }
+
+    main {
+      max-width: 720px;
+      margin: 0 auto;
+      background: #ffffff;
+      border-radius: 16px;
+      padding: 32px;
+      box-shadow: 0 12px 30px rgba(16, 24, 40, 0.12);
+    }
+
+    h1 {
+      font-size: 2rem;
+      margin-bottom: 8px;
+    }
+
+    p {
+      margin-top: 0;
+      color: #3f3f46;
+    }
+
+    ul {
+      list-style: none;
+      padding: 0;
+      margin: 24px 0 0;
+      display: grid;
+      gap: 12px;
+    }
+
+    li {
+      background: #f4f4f5;
+      border-radius: 12px;
+      padding: 16px;
+    }
+
+    a {
+      font-weight: 600;
+      color: #1d4ed8;
+      text-decoration: none;
+    }
+
+    a:hover,
+    a:focus {
+      text-decoration: underline;
+    }
+
+    .hint {
+      font-size: 0.95rem;
+      color: #52525b;
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Falaj contract interfaces</h1>
+    <p>Select a contract to open its standalone testing interface.</p>
+
+    <ul>
+      <li>
+        <a href="IdentityRegistry.html">IdentityRegistry</a>
+        <div class="hint">Participant onboarding, roles, and KYC updates.</div>
+      </li>
+      <li>
+        <a href="AEDStablecoin.html">AEDStablecoin</a>
+        <div class="hint">Mint, burn, pause, and transfer stablecoin flows.</div>
+      </li>
+      <li>
+        <a href="BondToken.html">BondToken</a>
+        <div class="hint">Bond lifecycle actions, coupon metadata, and transfer checks.</div>
+      </li>
+      <li>
+        <a href="DvPSettlement.html">DvPSettlement</a>
+        <div class="hint">Create, fund, and execute delivery-versus-payment settlements.</div>
+      </li>
+    </ul>
+
+    <p class="hint">Serve this folder over HTTP (for example: <code>python3 -m http.server 8000</code>).</p>
+  </main>
+</body>
+</html>
