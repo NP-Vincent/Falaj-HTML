@@ -124,6 +124,9 @@ const ROLE_HASHES = ROLE_LABELS.reduce((acc, label) => {
   return acc;
 }, {});
 
+const ROLE_REFERENCE_ADMIN_LABEL = 'REGULATOR';
+const DEPLOYER_ROLE_LABELS = new Set(['REGULATOR', 'ISSUER_STABLECOIN', 'ISSUER_BOND']);
+
 function formatRole(roleHash) {
   const match = Object.entries(ROLE_HASHES).find(([, hash]) => hash.toLowerCase() === roleHash.toLowerCase());
   return match ? `${match[0]} (${roleHash})` : roleHash;
@@ -147,6 +150,27 @@ function parsePagination(value, label) {
   return BigInt(Math.trunc(parsed));
 }
 
+function renderRoleReference() {
+  const tableBody = document.getElementById('role-reference-body');
+  if (!tableBody) {
+    return;
+  }
+  const adminHash = ROLE_HASHES[ROLE_REFERENCE_ADMIN_LABEL] || ethers.id(ROLE_REFERENCE_ADMIN_LABEL);
+  tableBody.innerHTML = '';
+  ROLE_LABELS.forEach((label) => {
+    const row = document.createElement('tr');
+    const hash = ROLE_HASHES[label];
+    const deployerRole = DEPLOYER_ROLE_LABELS.has(label);
+    row.innerHTML = `
+      <td><span class="role-badge">${label}</span></td>
+      <td>${hash}</td>
+      <td>${ROLE_REFERENCE_ADMIN_LABEL} (${adminHash})</td>
+      <td>${deployerRole ? 'true' : 'false'}</td>
+    `;
+    tableBody.appendChild(row);
+  });
+}
+
 // === WALLET CONNECTION LOGIC ===
 async function syncRegistryWithSigner() {
   const signer = getSigner();
@@ -168,6 +192,7 @@ function handleDisconnectUi() {
 // === MAIN UI HANDLING ===
 document.addEventListener('DOMContentLoaded', async () => {
   setActionButtonsEnabled(false);
+  renderRoleReference();
 
   // Connect Wallet
   document.getElementById('connect-btn').onclick = async () => {
