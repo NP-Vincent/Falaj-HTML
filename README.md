@@ -9,6 +9,10 @@ This repository hosts lightweight HTML + JavaScript interfaces for interacting w
 - `AEDStablecoin.html` – a standalone interface for the `AEDStablecoin` contract.
 - `BondToken.html` – a standalone interface for the `BondToken` contract.
 - `DvPSettlement.html` – a standalone interface for the `DvPSettlement` contract.
+- `FeeDistribution.html` – a standalone interface for the `FeeDistribution` contract.
+- `PaymentProcessor.html` – a standalone interface for the `PaymentProcessor` contract.
+- `RegulatedBridgeManager.html` – a standalone interface for the `RegulatedBridgeManager` contract.
+- `ValidatorStakingManager.html` – a standalone interface for the `ValidatorStakingManager` contract.
 - `js/` – shared JavaScript modules for wallet connection, contract wiring, and UI logic.
 - `contract/abi/` – ABI JSON files consumed by the interfaces.
 
@@ -28,6 +32,10 @@ Then open:
 - `http://localhost:8000/AEDStablecoin.html`
 - `http://localhost:8000/BondToken.html`
 - `http://localhost:8000/DvPSettlement.html`
+- `http://localhost:8000/FeeDistribution.html`
+- `http://localhost:8000/PaymentProcessor.html`
+- `http://localhost:8000/RegulatedBridgeManager.html`
+- `http://localhost:8000/ValidatorStakingManager.html`
 
 ## IdentityRegistry interface
 
@@ -95,6 +103,70 @@ Contract and network configuration lives in `js/config.js`:
 
 - `DVP_SETTLEMENT_ADDRESS` – deployed contract address
 - `DVP_SETTLEMENT_ABI_URL` – ABI location under `contract/abi/`
+
+## FeeDistribution interface
+
+The Fee Distribution UI provides:
+
+- Wallet connect/disconnect
+- Collect, distribute, and withdraw fees
+- Service provider and validator manager configuration
+- Access control and distribution stats
+
+### Configuration
+
+Contract and network configuration lives in `js/config.js`:
+
+- `FEE_DISTRIBUTION_ADDRESS` – deployed contract address
+- `FEE_DISTRIBUTION_ABI_URL` – ABI location under `contract/abi/`
+
+## PaymentProcessor interface
+
+The Payment Processor UI provides:
+
+- Wallet connect/disconnect
+- Native/stablecoin deposits with payment references
+- Protocol fee, exchange rate, and destination chain configuration
+- Access control and fee withdrawals
+
+### Configuration
+
+Contract and network configuration lives in `js/config.js`:
+
+- `PAYMENT_PROCESSOR_ADDRESS` – deployed contract address
+- `PAYMENT_PROCESSOR_ABI_URL` – ABI location under `contract/abi/`
+
+## RegulatedBridgeManager interface
+
+The Regulated Bridge Manager UI provides:
+
+- Wallet connect/disconnect
+- Pause controls, warp message handling, and rescue actions
+- Chain authorization and payment processor configuration
+- Bridge stats and receive eligibility checks
+
+### Configuration
+
+Contract and network configuration lives in `js/config.js`:
+
+- `REGULATED_BRIDGE_MANAGER_ADDRESS` – deployed contract address
+- `REGULATED_BRIDGE_MANAGER_ABI_URL` – ABI location under `contract/abi/`
+
+## ValidatorStakingManager interface
+
+The Validator Staking Manager UI provides:
+
+- Wallet connect/disconnect
+- Stake/unstake, validator registration, slashing, and reward distribution
+- Role management, fee distribution, grace period, and stake ratio updates
+- Validator/issuer readouts and pagination helpers
+
+### Configuration
+
+Contract and network configuration lives in `js/config.js`:
+
+- `VALIDATOR_STAKING_MANAGER_ADDRESS` – deployed contract address
+- `VALIDATOR_STAKING_MANAGER_ABI_URL` – ABI location under `contract/abi/`
 
 ## Adding a new contract interface
 

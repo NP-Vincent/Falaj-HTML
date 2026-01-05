@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Regulated Bridge Manager</title>
+  <style>
+    body { font-family: sans-serif; margin: auto; }
+    #msg { white-space: pre-wrap; }
+    #connect-btn, #disconnect-btn { margin: 5px; }
+    .page-nav {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+    .page-nav a {
+      color: #1d4ed8;
+      font-weight: 600;
+      text-decoration: none;
+    }
+    .page-nav a:hover,
+    .page-nav a:focus {
+      text-decoration: underline;
+    }
+    .actions {
+      margin-top: 20px;
+      padding: 12px;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      max-width: 920px;
+    }
+    .actions h4 { margin: 0 0 10px; }
+    .actions h5 { margin: 16px 0 8px; color: #333; }
+    .action-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 12px;
+      align-items: center;
+    }
+    .action-row input,
+    .action-row select {
+      padding: 6px 8px;
+      min-width: 180px;
+    }
+    .action-row button { margin-right: 6px; }
+  </style>
+</head>
+<body>
+  <h3 id="page-title">Regulated Bridge Manager</h3>
+  <nav class="page-nav">
+    <a href="index.html">Home</a>
+    <a href="IdentityRegistry.html">IdentityRegistry</a>
+    <a href="AEDStablecoin.html">AEDStablecoin</a>
+    <a href="BondToken.html">BondToken</a>
+    <a href="DvPSettlement.html">DvPSettlement</a>
+    <a href="FeeDistribution.html">FeeDistribution</a>
+    <a href="PaymentProcessor.html">PaymentProcessor</a>
+    <a href="RegulatedBridgeManager.html">RegulatedBridgeManager</a>
+    <a href="ValidatorStakingManager.html">ValidatorStakingManager</a>
+  </nav>
+  <p id="contract-address"></p>
+  <button id="connect-btn">Connect Wallet</button>
+  <button id="disconnect-btn" style="display:none;">Disconnect</button>
+
+  <section class="actions">
+    <h4>Bridge Manager Actions</h4>
+    <h5>Write Actions</h5>
+    <div class="action-row">
+      <strong>Pause Controls</strong>
+      <button id="pause-btn" disabled>Pause</button>
+      <button id="unpause-btn" disabled>Unpause</button>
+    </div>
+    <div class="action-row">
+      <strong>Receive Warp Message</strong>
+      <input id="warp-index" placeholder="Message index" />
+      <button id="receive-warp-btn" disabled>Receive</button>
+    </div>
+    <div class="action-row">
+      <strong>Rescue Tokens</strong>
+      <input id="rescue-token" placeholder="Token address" />
+      <input id="rescue-amount" placeholder="Amount (18 decimals)" />
+      <button id="rescue-tokens-btn" disabled>Rescue</button>
+    </div>
+    <div class="action-row">
+      <strong>Set AED Stablecoin</strong>
+      <input id="stablecoin-address" placeholder="Stablecoin address" />
+      <button id="set-stablecoin-btn" disabled>Set</button>
+    </div>
+    <div class="action-row">
+      <strong>Set Authorized Source Chain</strong>
+      <input id="authorized-chain-id" placeholder="Chain ID (bytes32 or label)" />
+      <select id="authorized-chain-enabled">
+        <option value="true">Authorize</option>
+        <option value="false">Remove</option>
+      </select>
+      <button id="set-authorized-chain-btn" disabled>Update</button>
+    </div>
+    <div class="action-row">
+      <strong>Set Bridge Reserve</strong>
+      <input id="bridge-reserve-address" placeholder="Reserve address" />
+      <button id="set-bridge-reserve-btn" disabled>Set</button>
+    </div>
+    <div class="action-row">
+      <strong>Set Minting Mode</strong>
+      <select id="minting-mode">
+        <option value="true">Mint</option>
+        <option value="false">Reserve transfer</option>
+      </select>
+      <button id="set-minting-mode-btn" disabled>Set</button>
+    </div>
+    <div class="action-row">
+      <strong>Set Payment Processor</strong>
+      <input id="payment-chain-id" placeholder="Chain ID (bytes32 or label)" />
+      <input id="payment-processor-address" placeholder="Processor address" />
+      <button id="set-payment-processor-btn" disabled>Set</button>
+    </div>
+
+    <h5>Read Actions</h5>
+    <div class="action-row">
+      <strong>Summary</strong>
+      <button id="summary-btn" disabled>Load</button>
+    </div>
+    <div class="action-row">
+      <strong>Bridge Stats</strong>
+      <button id="bridge-stats-btn" disabled>Load</button>
+    </div>
+    <div class="action-row">
+      <strong>Can Receive?</strong>
+      <input id="can-receive-recipient" placeholder="Recipient address" />
+      <button id="can-receive-btn" disabled>Check</button>
+    </div>
+    <div class="action-row">
+      <strong>Authorized Chain?</strong>
+      <input id="authorized-chain-query-id" placeholder="Chain ID (bytes32 or label)" />
+      <button id="authorized-chain-btn" disabled>Check</button>
+    </div>
+    <div class="action-row">
+      <strong>Payment Processor</strong>
+      <input id="payment-chain-query-id" placeholder="Chain ID (bytes32 or label)" />
+      <button id="payment-processor-btn" disabled>Get</button>
+    </div>
+    <div class="action-row">
+      <strong>Message Processed?</strong>
+      <input id="message-id" placeholder="Message ID (bytes32 or label)" />
+      <button id="message-processed-btn" disabled>Check</button>
+    </div>
+  </section>
+
+  <pre id="msg"></pre>
+
+  <script src="https://cdn.jsdelivr.net/npm/ethers@6/dist/ethers.umd.min.js"></script>
+  <script type="module" src="js/config.js"></script>
+  <script type="module" src="js/wallet.js"></script>
+  <script type="module" src="js/regulatedBridgeManager.js"></script>
+</body>
+</html>
