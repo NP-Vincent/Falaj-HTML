@@ -13,3 +13,9 @@ export const AED_STABLECOIN_ABI_URL = 'contract/abi/AEDStablecoin.json';
 
 export const IDENTITY_REGISTRY_ADDRESS = '0x189c4B40C5d073231e8fcd65370F55B55f25321c';
 export const IDENTITY_REGISTRY_ABI_URL = 'contract/abi/IdentityRegistry.json';
+
+export const BOND_TOKEN_ADDRESS = '0x0000000000000000000000000000000000000000';
+export const BOND_TOKEN_ABI_URL = 'contract/abi/BondToken.json';
+
+export const DVP_SETTLEMENT_ADDRESS = '0x0000000000000000000000000000000000000000';
+export const DVP_SETTLEMENT_ABI_URL = 'contract/abi/DvPSettlement.json';
