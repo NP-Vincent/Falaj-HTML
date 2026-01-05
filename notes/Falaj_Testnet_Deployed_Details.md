@@ -1,5 +1,7 @@
 L1 Deployment Notes
 
+See Falaj_Testnet_References.md for source links and spec docs.
+
 Falaj Testnet  EVM Chain ID:
 75417
 
