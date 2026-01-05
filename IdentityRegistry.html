@@ -23,6 +23,40 @@
       margin: 16px 0 8px;
       color: #333;
     }
+    .role-reference {
+      margin: 12px 0 16px;
+      padding: 12px;
+      border: 1px solid #eee;
+      border-radius: 8px;
+      background: #fafafa;
+    }
+    .role-reference table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.9rem;
+    }
+    .role-reference th,
+    .role-reference td {
+      text-align: left;
+      padding: 6px 8px;
+      border-bottom: 1px solid #e5e5e5;
+      vertical-align: top;
+      word-break: break-all;
+    }
+    .role-badge {
+      display: inline-block;
+      padding: 2px 6px;
+      border-radius: 999px;
+      background: #eef2ff;
+      color: #3730a3;
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+    .role-note {
+      margin: 8px 0 0;
+      font-size: 0.85rem;
+      color: #555;
+    }
     .action-row {
       display: flex;
       flex-wrap: wrap;
@@ -46,6 +80,23 @@
   <button id="disconnect-btn" style="display:none;">Disconnect</button>
   <section class="actions">
     <h4>Identity Registry Actions</h4>
+    <div class="role-reference">
+      <h5>Role Reference</h5>
+      <table>
+        <thead>
+          <tr>
+            <th>Role label</th>
+            <th>bytes32 hash</th>
+            <th>Admin role</th>
+            <th>Deployer role</th>
+          </tr>
+        </thead>
+        <tbody id="role-reference-body"></tbody>
+      </table>
+      <p class="role-note">
+        You can type role labels instead of hashes in inputs—<code>parseRole()</code> converts labels to hashes.
+      </p>
+    </div>
     <h5>Write Actions</h5>
     <div class="action-row">
       <strong>Add Participant</strong>
