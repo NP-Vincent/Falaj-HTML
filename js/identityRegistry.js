@@ -133,12 +133,42 @@ function formatRole(roleHash) {
 }
 
 function formatExpiry(expiry) {
-  const expiryNumber = Number(expiry);
-  if (!Number.isFinite(expiryNumber) || expiryNumber <= 0) {
-    return `${expiry}`;
+  const expiryText = `${expiry}`;
+  const expiryValue = (() => {
+    if (typeof expiry === 'bigint') {
+      return expiry;
+    }
+    if (typeof expiry === 'number' && Number.isFinite(expiry)) {
+      return BigInt(Math.trunc(expiry));
+    }
+    if (typeof expiry === 'string') {
+      const trimmed = expiry.trim();
+      if (!trimmed) {
+        return null;
+      }
+      try {
+        return BigInt(trimmed);
+      } catch {
+        return null;
+      }
+    }
+    return null;
+  })();
+
+  if (!expiryValue || expiryValue <= 0n) {
+    return expiryText;
   }
-  const date = new Date(expiryNumber * 1000);
-  return `${expiry} (${date.toISOString()})`;
+
+  const maxSafeSeconds = BigInt(Math.floor(Number.MAX_SAFE_INTEGER / 1000));
+  if (expiryValue > maxSafeSeconds) {
+    return `${expiryText} (date out of range)`;
+  }
+
+  const date = new Date(Number(expiryValue) * 1000);
+  if (!Number.isFinite(date.getTime())) {
+    return expiryText;
+  }
+  return `${expiryText} (${date.toISOString()})`;
 }
 
 function parsePagination(value, label) {
