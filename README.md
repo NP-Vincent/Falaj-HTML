@@ -5,6 +5,7 @@ This repository hosts lightweight HTML + JavaScript interfaces for interacting w
 ## What's here
 
 - `IdentityRegistry.html` – a standalone interface for the `IdentityRegistry` contract.
+- `AEDStablecoin.html` – a standalone interface for the `AEDStablecoin` contract.
 - `js/` – shared JavaScript modules for wallet connection, contract wiring, and UI logic.
 - `contract/abi/` – ABI JSON files consumed by the interfaces.
 
@@ -20,6 +21,7 @@ python3 -m http.server 8000
 Then open:
 
 - `http://localhost:8000/IdentityRegistry.html`
+- `http://localhost:8000/AEDStablecoin.html`
 
 ## IdentityRegistry interface
 
@@ -40,6 +42,22 @@ Contract and network configuration lives in `js/config.js`:
 - `IDENTITY_REGISTRY_ABI_URL` – ABI location under `contract/abi/`
 
 Update these values to point at the correct deployment before testing.
+
+## AEDStablecoin interface
+
+The AED Stablecoin UI provides:
+
+- Wallet connect/disconnect
+- Token summary (supply, minted/burned, paused)
+- Write actions: transfer, approve, mint, burn, pause, freeze, emergency transfer
+- Read actions: balance, allowance, frozen status, transfer eligibility
+
+### Configuration
+
+Contract and network configuration lives in `js/config.js`:
+
+- `AED_STABLECOIN_ADDRESS` – deployed contract address
+- `AED_STABLECOIN_ABI_URL` – ABI location under `contract/abi/`
 
 ## Adding a new contract interface
 
