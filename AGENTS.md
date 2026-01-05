@@ -18,6 +18,9 @@ This repo contains lightweight HTML + JavaScript pages used to exercise deployed
 - Provide clear instructions for running via a simple HTTP server.
 - `notes/deployment_log.md` contains the latest contract addresses.
 - `notes/Testnet_Details.md` contains details of the Falaj Testnet.
+- Default Falaj Testnet chain settings and deployment references live in:
+  - `notes/Falaj_Testnet_Deployed_Details.md`
+  - `notes/Falaj_Testnet_References.md`
 
 ## Testing
 
