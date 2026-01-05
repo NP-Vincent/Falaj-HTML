@@ -1,0 +1,92 @@
+.page-layout {
+  display: flex;
+  gap: 24px;
+  align-items: flex-start;
+}
+
+.page-main {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.log-panel {
+  flex: 0 0 320px;
+  width: 320px;
+  padding: 16px;
+  border-radius: 12px;
+  border: 1px solid #e5e7eb;
+  background: #f8fafc;
+  box-shadow: 0 8px 18px rgba(15, 23, 42, 0.08);
+}
+
+.log-panel h4 {
+  margin: 0 0 12px;
+  font-size: 1rem;
+}
+
+.log-section + .log-section {
+  margin-top: 16px;
+}
+
+.log-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 8px;
+  font-weight: 600;
+}
+
+.log-actions {
+  display: flex;
+  gap: 6px;
+}
+
+.log-actions button {
+  border: 1px solid #cbd5f5;
+  background: #eef2ff;
+  color: #1e293b;
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  cursor: pointer;
+}
+
+.log-actions button:hover,
+.log-actions button:focus {
+  background: #e0e7ff;
+}
+
+.log-list {
+  min-height: 120px;
+  max-height: 280px;
+  padding: 8px;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+  background: #ffffff;
+  overflow-y: auto;
+  font-family: "SFMono-Regular", "Menlo", "Monaco", "Consolas", "Liberation Mono", "Courier New", monospace;
+  font-size: 0.75rem;
+  white-space: pre-wrap;
+  color: #1f2937;
+}
+
+.log-entry + .log-entry {
+  margin-top: 6px;
+}
+
+.log-empty {
+  color: #6b7280;
+  font-style: italic;
+}
+
+@media (max-width: 1100px) {
+  .page-layout {
+    flex-direction: column;
+  }
+
+  .log-panel {
+    width: 100%;
+    flex: 1 1 auto;
+  }
+}

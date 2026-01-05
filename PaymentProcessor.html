@@ -3,8 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <title>Payment Processor</title>
+  <link rel="stylesheet" href="css/logs.css" />
   <style>
-    body { font-family: sans-serif; margin: auto; }
+    body { font-family: sans-serif; margin: 0; padding: 24px; }
     #msg { white-space: pre-wrap; }
     #connect-btn, #disconnect-btn { margin: 5px; }
     .page-nav {
@@ -46,21 +47,23 @@
   </style>
 </head>
 <body>
-  <h3 id="page-title">Payment Processor</h3>
-  <nav class="page-nav">
-    <a href="index.html">Home</a>
-    <a href="IdentityRegistry.html">IdentityRegistry</a>
-    <a href="AEDStablecoin.html">AEDStablecoin</a>
-    <a href="BondToken.html">BondToken</a>
-    <a href="DvPSettlement.html">DvPSettlement</a>
-    <a href="FeeDistribution.html">FeeDistribution</a>
-    <a href="PaymentProcessor.html">PaymentProcessor</a>
-    <a href="RegulatedBridgeManager.html">RegulatedBridgeManager</a>
-    <a href="ValidatorStakingManager.html">ValidatorStakingManager</a>
-  </nav>
-  <p id="contract-address"></p>
-  <button id="connect-btn">Connect Wallet</button>
-  <button id="disconnect-btn" style="display:none;">Disconnect</button>
+  <div class="page-layout">
+    <div class="page-main">
+      <h3 id="page-title">Payment Processor</h3>
+      <nav class="page-nav">
+        <a href="index.html">Home</a>
+        <a href="IdentityRegistry.html">IdentityRegistry</a>
+        <a href="AEDStablecoin.html">AEDStablecoin</a>
+        <a href="BondToken.html">BondToken</a>
+        <a href="DvPSettlement.html">DvPSettlement</a>
+        <a href="FeeDistribution.html">FeeDistribution</a>
+        <a href="PaymentProcessor.html">PaymentProcessor</a>
+        <a href="RegulatedBridgeManager.html">RegulatedBridgeManager</a>
+        <a href="ValidatorStakingManager.html">ValidatorStakingManager</a>
+      </nav>
+      <p id="contract-address"></p>
+      <button id="connect-btn">Connect Wallet</button>
+      <button id="disconnect-btn" style="display:none;">Disconnect</button>
 
   <section class="actions">
     <h4>Payment Processor Actions</h4>
@@ -167,7 +170,32 @@
     </div>
   </section>
 
-  <pre id="msg"></pre>
+      <pre id="msg"></pre>
+    </div>
+    <aside class="log-panel">
+      <h4>Logs</h4>
+      <div class="log-section">
+        <div class="log-section-header">
+          <span>Event Log</span>
+          <div class="log-actions">
+            <button type="button" data-log-action="copy" data-log-target="event">Copy</button>
+            <button type="button" data-log-action="clear" data-log-target="event">Clear</button>
+          </div>
+        </div>
+        <div class="log-list" data-log-list="event"></div>
+      </div>
+      <div class="log-section">
+        <div class="log-section-header">
+          <span>Error Log</span>
+          <div class="log-actions">
+            <button type="button" data-log-action="copy" data-log-target="error">Copy</button>
+            <button type="button" data-log-action="clear" data-log-target="error">Clear</button>
+          </div>
+        </div>
+        <div class="log-list" data-log-list="error"></div>
+      </div>
+    </aside>
+  </div>
 
   <script src="https://cdn.jsdelivr.net/npm/ethers@6/dist/ethers.umd.min.js"></script>
   <script type="module" src="js/config.js"></script>

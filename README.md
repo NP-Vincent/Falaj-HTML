@@ -37,6 +37,10 @@ Then open:
 - `http://localhost:8000/RegulatedBridgeManager.html`
 - `http://localhost:8000/ValidatorStakingManager.html`
 
+## Logs panel
+
+Each interface page includes a right-hand log panel with separate event and error streams. Use the Copy and Clear buttons to export or reset each log while testing contract flows.
+
 ## IdentityRegistry interface
 
 The Identity Registry UI provides:

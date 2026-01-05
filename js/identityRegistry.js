@@ -14,6 +14,7 @@ import {
   onChainChanged,
   switchNetwork
 } from './wallet.js';
+import { initLogs, logEvent, logError } from './logs.js';
 
 const ethers = window.ethers;
 
@@ -56,6 +57,12 @@ let registry = null;
 // === UI UTILS ===
 function show(msg) {
   document.getElementById('msg').textContent = msg;
+  logEvent(msg);
+}
+
+function showError(msg) {
+  document.getElementById('msg').textContent = msg;
+  logError(msg);
 }
 
 function setActionButtonsEnabled(enabled) {
@@ -221,6 +228,7 @@ function handleDisconnectUi() {
 
 // === MAIN UI HANDLING ===
 document.addEventListener('DOMContentLoaded', async () => {
+  initLogs();
   setActionButtonsEnabled(false);
   renderRoleReference();
 
@@ -241,7 +249,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       show(`Wallet connected to ${FALAJ_NETWORK.chainName}\nAddress: ${address}`);
       setActionButtonsEnabled(true);
     } catch (err) {
-      show('Connection or network switch failed:\n' + (err.message || err));
+      showError('Connection or network switch failed:\n' + (err.message || err));
       disconnectWallet();
       handleDisconnectUi();
     }
@@ -260,7 +268,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       const receipt = await tx.wait();
       show(`✅ Participant added\nTx hash: ${receipt.transactionHash}\nExplorer: ${EXPLORER_BASE}`);
     } catch (err) {
-      show('Add participant failed:\n' + (err.message || err));
+      showError('Add participant failed:\n' + (err.message || err));
     }
   };
 
@@ -276,7 +284,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       const receipt = await tx.wait();
       show(`✅ Role changed\nTx hash: ${receipt.transactionHash}\nExplorer: ${EXPLORER_BASE}`);
     } catch (err) {
-      show('Change role failed:\n' + (err.message || err));
+      showError('Change role failed:\n' + (err.message || err));
     }
   };
 
@@ -292,7 +300,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       const receipt = await tx.wait();
       show(`✅ KYC renewed\nTx hash: ${receipt.transactionHash}\nExplorer: ${EXPLORER_BASE}`);
     } catch (err) {
-      show('Renew KYC failed:\n' + (err.message || err));
+      showError('Renew KYC failed:\n' + (err.message || err));
     }
   };
 
@@ -307,7 +315,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       const receipt = await tx.wait();
       show(`✅ Participant removed\nTx hash: ${receipt.transactionHash}\nExplorer: ${EXPLORER_BASE}`);
     } catch (err) {
-      show('Remove participant failed:\n' + (err.message || err));
+      showError('Remove participant failed:\n' + (err.message || err));
     }
   };
 
@@ -323,7 +331,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       const receipt = await tx.wait();
       show(`✅ Participant frozen\nTx hash: ${receipt.transactionHash}\nExplorer: ${EXPLORER_BASE}`);
     } catch (err) {
-      show('Freeze failed:\n' + (err.message || err));
+      showError('Freeze failed:\n' + (err.message || err));
     }
   };
 
@@ -338,7 +346,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       const receipt = await tx.wait();
       show(`✅ Participant unfrozen\nTx hash: ${receipt.transactionHash}\nExplorer: ${EXPLORER_BASE}`);
     } catch (err) {
-      show('Unfreeze failed:\n' + (err.message || err));
+      showError('Unfreeze failed:\n' + (err.message || err));
     }
   };
 
@@ -352,7 +360,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       const receipt = await tx.wait();
       show(`✅ Registry paused\nTx hash: ${receipt.transactionHash}\nExplorer: ${EXPLORER_BASE}`);
     } catch (err) {
-      show('Pause failed:\n' + (err.message || err));
+      showError('Pause failed:\n' + (err.message || err));
     }
   };
 
@@ -366,7 +374,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       const receipt = await tx.wait();
       show(`✅ Registry unpaused\nTx hash: ${receipt.transactionHash}\nExplorer: ${EXPLORER_BASE}`);
     } catch (err) {
-      show('Unpause failed:\n' + (err.message || err));
+      showError('Unpause failed:\n' + (err.message || err));
     }
   };
 
@@ -381,7 +389,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       const receipt = await tx.wait();
       show(`✅ Precompile sync updated (${enabled ? 'enabled' : 'disabled'})\nTx hash: ${receipt.transactionHash}\nExplorer: ${EXPLORER_BASE}`);
     } catch (err) {
-      show('Precompile sync update failed:\n' + (err.message || err));
+      showError('Precompile sync update failed:\n' + (err.message || err));
     }
   };
 
@@ -397,7 +405,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       const receipt = await tx.wait();
       show(`✅ Role granted\nRole: ${formatRole(roleValue)}\nAccount: ${account}\nTx hash: ${receipt.transactionHash}\nExplorer: ${EXPLORER_BASE}`);
     } catch (err) {
-      show('Grant role failed:\n' + (err.message || err));
+      showError('Grant role failed:\n' + (err.message || err));
     }
   };
 
@@ -413,7 +421,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       const receipt = await tx.wait();
       show(`✅ Role revoked\nRole: ${formatRole(roleValue)}\nAccount: ${account}\nTx hash: ${receipt.transactionHash}\nExplorer: ${EXPLORER_BASE}`);
     } catch (err) {
-      show('Revoke role failed:\n' + (err.message || err));
+      showError('Revoke role failed:\n' + (err.message || err));
     }
   };
 
@@ -429,7 +437,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       const receipt = await tx.wait();
       show(`✅ Role renounced\nRole: ${formatRole(roleValue)}\nAccount: ${account}\nTx hash: ${receipt.transactionHash}\nExplorer: ${EXPLORER_BASE}`);
     } catch (err) {
-      show('Renounce role failed:\n' + (err.message || err));
+      showError('Renounce role failed:\n' + (err.message || err));
     }
   };
 
@@ -449,7 +457,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         + `Frozen: ${participant[3]}`
       );
     } catch (err) {
-      show('Lookup failed:\n' + (err.message || err));
+      showError('Lookup failed:\n' + (err.message || err));
     }
   };
 
@@ -463,7 +471,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       const adminRole = await registry.getRoleAdmin(roleValue);
       show(`Role admin\nRole: ${formatRole(roleValue)}\nAdmin role: ${formatRole(adminRole)}`);
     } catch (err) {
-      show('Get role admin failed:\n' + (err.message || err));
+      showError('Get role admin failed:\n' + (err.message || err));
     }
   };
 
@@ -478,7 +486,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       const hasRole = await registry.hasRole(roleValue, account);
       show(`Has role\nRole: ${formatRole(roleValue)}\nAccount: ${account}\nHas role: ${hasRole}`);
     } catch (err) {
-      show('Has role check failed:\n' + (err.message || err));
+      showError('Has role check failed:\n' + (err.message || err));
     }
   };
 
@@ -492,7 +500,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       const role = await registry.participantRole(account);
       show(`Current role for ${account}\nRole: ${formatRole(role)}`);
     } catch (err) {
-      show('Current role lookup failed:\n' + (err.message || err));
+      showError('Current role lookup failed:\n' + (err.message || err));
     }
   };
 
@@ -507,7 +515,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       const hasRole = await registry.hasParticipantRole(account, roleValue);
       show(`Role check for ${account}\nRole: ${formatRole(roleValue)}\nHas role: ${hasRole}`);
     } catch (err) {
-      show('Role check failed:\n' + (err.message || err));
+      showError('Role check failed:\n' + (err.message || err));
     }
   };
 
@@ -521,7 +529,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       const allowed = await registry.isAllowedToTransact(account);
       show(`Allowed to transact for ${account}\nAllowed: ${allowed}`);
     } catch (err) {
-      show('Allowlist check failed:\n' + (err.message || err));
+      showError('Allowlist check failed:\n' + (err.message || err));
     }
   };
 
@@ -550,7 +558,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         + `Precompile sync enabled: ${syncEnabled}`
       );
     } catch (err) {
-      show('Participant state failed:\n' + (err.message || err));
+      showError('Participant state failed:\n' + (err.message || err));
     }
   };
 
@@ -573,7 +581,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         + `${formatted}`
       );
     } catch (err) {
-      show('Participants fetch failed:\n' + (err.message || err));
+      showError('Participants fetch failed:\n' + (err.message || err));
     }
   };
 
