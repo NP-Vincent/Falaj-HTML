@@ -18,9 +18,9 @@ Messaging (ICM) protocol.
   for validator management. This creates a genesis configuration tailored for a permissioned EVM
   chain.
 - **Set Chain Parameters:** In the CLI wizard, pick “defaults for a test environment” (Fuji) and enter
-  a unique ChainID (e.g. any unused number ≠ 1, 43114). Specify a token symbol for the native asset
-  (e.g. “AEDX”) – this is mainly for genesis allocations. After completion, export the genesis config
-  file:
+  a unique ChainID (e.g. any unused number ≠ 1, 43114). Specify **E-AED** as the native asset symbol
+  (pegged 1:1 to AED) – this is mainly for genesis allocations. After completion, export the genesis
+  config file:
 
   ```bash
   avalanche blockchain describe SovereignL1 --genesis > genesis.json
@@ -58,21 +58,18 @@ Messaging (ICM) protocol.
   address (one of the core addresses) the `REGULATOR` role. This on-chain registry will govern all
   identity/role checks.
 
-## Phase 2: Core Economics (Days 5–8) – Token and Fee Token
+## Phase 2: Core Economics (Days 5–8) – Token and Gas Fees
 
-- **Deploy E-AED Gas Token:** Write an ERC-20 contract `E-AED.sol` (1:1 peg to AED). Deploy it on
-  your L1, minting an initial supply (e.g. held by Regulator). Make the `REGULATOR` role the minter.
-  After deployment, note the E-AED contract address.
-- **Configure Gas Token:** Modify your L1’s chain config so that E-AED is used for gas fees. In
-  practice, edit `chainConfig` (genesis or via `avalanche blockchain configure`) to set the gas token
-  address to your E-AED contract. (Avalanche’s Subnet-EVM supports specifying a custom gas token;
-  refer to the Subnet-EVM docs for the exact key.) Also set `"gasPrice": 1` or similar in genesis so
-  that gas costs are paid in E-AED. Because `allowFeeRecipients` is enabled, validators will receive
-  E-AED fees to their chosen address. (This replaces the default AVAX model.)
-- **Implement Gas Fee Logic:** In your L1 contracts, charge gas in E-AED. The chain will
-  automatically deduct fees in E-AED if configured. You may also include a simple distribution
-  mechanism: for example, set the block reward or fee split to send a portion of gas fees to the
-  producer’s address.
+- **Define the Native Gas Token:** Falaj Testnet uses a native E-AED token (pegged 1:1 to AED) as
+  the gas fee currency. Configure the chain so the native token symbol is **E-AED** in genesis and
+  make sure fees are accounted for in E-AED (not AVAX or a separate ERC-20).
+- **Configure Gas Fees:** In your L1’s `chainConfig` (genesis or via `avalanche blockchain configure`),
+  set `"gasPrice": 1` or similar so that gas costs are paid in the native E-AED. Because
+  `allowFeeRecipients` is enabled, validators will receive native E-AED fees to their chosen address.
+  (This replaces the default AVAX model.)
+- **Implement Gas Fee Logic:** The chain will automatically deduct fees in native E-AED. You may also
+  include a simple distribution mechanism: for example, set the block reward or fee split to send a
+  portion of gas fees to the producer’s address.
 - **Deploy AED Stablecoin Contract:** Develop `AEDStablecoin.sol` that enforces compliance:
 
   - Only accounts with the `ISSUER_STABLECOIN` role in the `IdentityRegistry` can call `mint` or
@@ -128,8 +125,7 @@ Messaging (ICM) protocol.
   all contracts. Include tests for:
 
   - `IdentityRegistry`: role grants/revokes.
-  - `E-AED` token: minting, gas payments (optionally simulate a simple transaction to see gas
-    deduction).
+  - Native E-AED gas payments (optionally simulate a simple transaction to see gas deduction).
   - Stablecoin compliance: unauthorized mint or transfer attempts should revert. Authorized
     mint/transfer should succeed.
   - ICM flow: simulate Warp messaging in tests. (You can call the Warp precompile directly in a
@@ -169,7 +165,7 @@ By the end of Day 14, you should have:
 - A running Avalanche L1 on Fuji (single PoA validator) created with Subnet-EVM.
 - `IdentityRegistry` deployed with `REGULATOR`, `ISSUER_STABLECOIN`, and `PARTICIPANT` roles, and
   initial role assignments.
-- E-AED ERC-20 token configured as the chain’s gas currency (via genesis config) instead of AVAX.
+- Native E-AED configured as the chain’s gas currency (via genesis config) instead of AVAX.
   Validators receive gas fees in E-AED.
 - AED stablecoin contract enforcing mint/transfer rules via `IdentityRegistry` checks. No
   unauthorized minting or transfers are possible.
