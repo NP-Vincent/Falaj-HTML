@@ -9,6 +9,21 @@
     #connect-btn, #disconnect-btn {
       margin: 5px;
     }
+    .page-nav {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+    .page-nav a {
+      color: #1d4ed8;
+      font-weight: 600;
+      text-decoration: none;
+    }
+    .page-nav a:hover,
+    .page-nav a:focus {
+      text-decoration: underline;
+    }
     .actions {
       margin-top: 20px;
       padding: 12px;
@@ -76,6 +91,17 @@
 </head>
 <body>
   <h3 id="page-title">Identity Registry</h3>
+  <nav class="page-nav">
+    <a href="index.html">Home</a>
+    <a href="IdentityRegistry.html">IdentityRegistry</a>
+    <a href="AEDStablecoin.html">AEDStablecoin</a>
+    <a href="BondToken.html">BondToken</a>
+    <a href="DvPSettlement.html">DvPSettlement</a>
+    <a href="FeeDistribution.html">FeeDistribution</a>
+    <a href="PaymentProcessor.html">PaymentProcessor</a>
+    <a href="RegulatedBridgeManager.html">RegulatedBridgeManager</a>
+    <a href="ValidatorStakingManager.html">ValidatorStakingManager</a>
+  </nav>
   <button id="connect-btn">Connect Wallet</button>
   <button id="disconnect-btn" style="display:none;">Disconnect</button>
   <section class="actions">

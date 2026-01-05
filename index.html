@@ -62,6 +62,13 @@
       text-decoration: underline;
     }
 
+    .page-nav {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin: 0 0 20px;
+    }
+
     .hint {
       font-size: 0.95rem;
       color: #52525b;
@@ -71,6 +78,17 @@
 </head>
 <body>
   <main>
+    <nav class="page-nav">
+      <a href="index.html">Home</a>
+      <a href="IdentityRegistry.html">IdentityRegistry</a>
+      <a href="AEDStablecoin.html">AEDStablecoin</a>
+      <a href="BondToken.html">BondToken</a>
+      <a href="DvPSettlement.html">DvPSettlement</a>
+      <a href="FeeDistribution.html">FeeDistribution</a>
+      <a href="PaymentProcessor.html">PaymentProcessor</a>
+      <a href="RegulatedBridgeManager.html">RegulatedBridgeManager</a>
+      <a href="ValidatorStakingManager.html">ValidatorStakingManager</a>
+    </nav>
     <h1>Falaj contract interfaces</h1>
     <p>Select a contract to open its standalone testing interface.</p>
 
@@ -90,6 +108,22 @@
       <li>
         <a href="DvPSettlement.html">DvPSettlement</a>
         <div class="hint">Create, fund, and execute delivery-versus-payment settlements.</div>
+      </li>
+      <li>
+        <a href="FeeDistribution.html">FeeDistribution</a>
+        <div class="hint">Collect and distribute validator/provider fees.</div>
+      </li>
+      <li>
+        <a href="PaymentProcessor.html">PaymentProcessor</a>
+        <div class="hint">Deposit payments, manage exchange rates, and protocol fees.</div>
+      </li>
+      <li>
+        <a href="RegulatedBridgeManager.html">RegulatedBridgeManager</a>
+        <div class="hint">Manage bridge reserves, chains, and warp message handling.</div>
+      </li>
+      <li>
+        <a href="ValidatorStakingManager.html">ValidatorStakingManager</a>
+        <div class="hint">Stake, register validators, and manage rewards.</div>
       </li>
     </ul>
 

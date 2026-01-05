@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Payment Processor</title>
+  <style>
+    body { font-family: sans-serif; margin: auto; }
+    #msg { white-space: pre-wrap; }
+    #connect-btn, #disconnect-btn { margin: 5px; }
+    .page-nav {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+    .page-nav a {
+      color: #1d4ed8;
+      font-weight: 600;
+      text-decoration: none;
+    }
+    .page-nav a:hover,
+    .page-nav a:focus {
+      text-decoration: underline;
+    }
+    .actions {
+      margin-top: 20px;
+      padding: 12px;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      max-width: 920px;
+    }
+    .actions h4 { margin: 0 0 10px; }
+    .actions h5 { margin: 16px 0 8px; color: #333; }
+    .action-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 12px;
+      align-items: center;
+    }
+    .action-row input {
+      padding: 6px 8px;
+      min-width: 180px;
+    }
+    .action-row button { margin-right: 6px; }
+  </style>
+</head>
+<body>
+  <h3 id="page-title">Payment Processor</h3>
+  <nav class="page-nav">
+    <a href="index.html">Home</a>
+    <a href="IdentityRegistry.html">IdentityRegistry</a>
+    <a href="AEDStablecoin.html">AEDStablecoin</a>
+    <a href="BondToken.html">BondToken</a>
+    <a href="DvPSettlement.html">DvPSettlement</a>
+    <a href="FeeDistribution.html">FeeDistribution</a>
+    <a href="PaymentProcessor.html">PaymentProcessor</a>
+    <a href="RegulatedBridgeManager.html">RegulatedBridgeManager</a>
+    <a href="ValidatorStakingManager.html">ValidatorStakingManager</a>
+  </nav>
+  <p id="contract-address"></p>
+  <button id="connect-btn">Connect Wallet</button>
+  <button id="disconnect-btn" style="display:none;">Disconnect</button>
+
+  <section class="actions">
+    <h4>Payment Processor Actions</h4>
+    <h5>Write Actions</h5>
+    <div class="action-row">
+      <strong>Deposit AVAX</strong>
+      <input id="deposit-avax-recipient" placeholder="Recipient address" />
+      <input id="deposit-avax-ref" placeholder="Payment reference" />
+      <input id="deposit-avax-amount" placeholder="AVAX amount" />
+      <button id="deposit-avax-btn" disabled>Deposit</button>
+    </div>
+    <div class="action-row">
+      <strong>Deposit Stablecoin</strong>
+      <input id="deposit-stablecoin-token" placeholder="Token address" />
+      <input id="deposit-stablecoin-amount" placeholder="Amount (18 decimals)" />
+      <input id="deposit-stablecoin-recipient" placeholder="Recipient address" />
+      <input id="deposit-stablecoin-ref" placeholder="Payment reference" />
+      <button id="deposit-stablecoin-btn" disabled>Deposit</button>
+    </div>
+    <div class="action-row">
+      <strong>Emergency Withdraw Token</strong>
+      <input id="emergency-token" placeholder="Token address" />
+      <input id="emergency-recipient" placeholder="Recipient address" />
+      <input id="emergency-amount" placeholder="Amount (18 decimals)" />
+      <button id="emergency-withdraw-btn" disabled>Withdraw</button>
+    </div>
+    <div class="action-row">
+      <strong>Pause Controls</strong>
+      <button id="pause-btn" disabled>Pause</button>
+      <button id="unpause-btn" disabled>Unpause</button>
+    </div>
+    <div class="action-row">
+      <strong>Set Default Destination Chain</strong>
+      <input id="default-chain-id" placeholder="Chain ID (bytes32 or label)" />
+      <button id="set-default-chain-btn" disabled>Set</button>
+    </div>
+    <div class="action-row">
+      <strong>Set Destination Chain</strong>
+      <input id="destination-chain-id" placeholder="Chain ID (bytes32 or label)" />
+      <input id="destination-chain-manager" placeholder="Bridge manager address" />
+      <button id="set-destination-chain-btn" disabled>Set</button>
+    </div>
+    <div class="action-row">
+      <strong>Set Exchange Rate</strong>
+      <input id="exchange-rate-token" placeholder="Token address" />
+      <input id="exchange-rate-value" placeholder="Rate to AED (uint256)" />
+      <button id="set-exchange-rate-btn" disabled>Set</button>
+    </div>
+    <div class="action-row">
+      <strong>Set Protocol Fee (bps)</strong>
+      <input id="protocol-fee-value" placeholder="Basis points" />
+      <button id="set-protocol-fee-btn" disabled>Set</button>
+    </div>
+    <div class="action-row">
+      <strong>Withdraw Fees</strong>
+      <input id="withdraw-fees-to" placeholder="Recipient address" />
+      <button id="withdraw-fees-btn" disabled>Withdraw</button>
+    </div>
+    <h5>Access Control</h5>
+    <div class="action-row">
+      <strong>Grant Role</strong>
+      <input id="grant-role-account" placeholder="Account address" />
+      <input id="grant-role-value" placeholder="Role (bytes32 or label)" />
+      <button id="grant-role-btn" disabled>Grant</button>
+    </div>
+    <div class="action-row">
+      <strong>Revoke Role</strong>
+      <input id="revoke-role-account" placeholder="Account address" />
+      <input id="revoke-role-value" placeholder="Role (bytes32 or label)" />
+      <button id="revoke-role-btn" disabled>Revoke</button>
+    </div>
+    <div class="action-row">
+      <strong>Renounce Role</strong>
+      <input id="renounce-role-account" placeholder="Account address" />
+      <input id="renounce-role-value" placeholder="Role (bytes32 or label)" />
+      <button id="renounce-role-btn" disabled>Renounce</button>
+    </div>
+
+    <h5>Read Actions</h5>
+    <div class="action-row">
+      <strong>Summary</strong>
+      <button id="summary-btn" disabled>Load</button>
+    </div>
+    <div class="action-row">
+      <strong>Get Exchange Rate</strong>
+      <input id="exchange-rate-query-token" placeholder="Token address" />
+      <button id="exchange-rate-btn" disabled>Get Rate</button>
+    </div>
+    <div class="action-row">
+      <strong>Get Destination Bridge Manager</strong>
+      <input id="destination-chain-query-id" placeholder="Chain ID (bytes32 or label)" />
+      <button id="destination-manager-btn" disabled>Get Manager</button>
+    </div>
+    <div class="action-row">
+      <strong>Token Supported?</strong>
+      <input id="token-supported-token" placeholder="Token address" />
+      <button id="token-supported-btn" disabled>Check</button>
+    </div>
+    <div class="action-row">
+      <strong>Calculate AED Amount</strong>
+      <input id="calculate-aed-token" placeholder="Token address" />
+      <input id="calculate-aed-amount" placeholder="Amount (18 decimals)" />
+      <button id="calculate-aed-btn" disabled>Calculate</button>
+    </div>
+  </section>
+
+  <pre id="msg"></pre>
+
+  <script src="https://cdn.jsdelivr.net/npm/ethers@6/dist/ethers.umd.min.js"></script>
+  <script type="module" src="js/config.js"></script>
+  <script type="module" src="js/wallet.js"></script>
+  <script type="module" src="js/paymentProcessor.js"></script>
+</body>
+</html>
