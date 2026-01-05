@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>DvP Settlement</title>
+  <style>
+    body { font-family: sans-serif; margin: auto; }
+    #msg { white-space: pre-wrap; }
+    #connect-btn, #disconnect-btn { margin: 5px; }
+    .actions {
+      margin-top: 20px;
+      padding: 12px;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      max-width: 900px;
+    }
+    .actions h4 { margin: 0 0 10px; }
+    .actions h5 { margin: 16px 0 8px; color: #333; }
+    .action-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 12px;
+      align-items: center;
+    }
+    .action-row input {
+      padding: 6px 8px;
+      min-width: 180px;
+    }
+    .action-row button { margin-right: 6px; }
+  </style>
+</head>
+<body>
+  <h3 id="page-title">DvP Settlement</h3>
+  <p id="contract-address"></p>
+  <button id="connect-btn">Connect Wallet</button>
+  <button id="disconnect-btn" style="display:none;">Disconnect</button>
+
+  <section class="actions">
+    <h4>DvP Settlement Actions</h4>
+    <h5>Write Actions</h5>
+    <div class="action-row">
+      <strong>Create Settlement</strong>
+      <input id="create-bond-token" placeholder="Bond token address" />
+      <input id="create-bond-amount" placeholder="Bond amount (whole units)" />
+      <input id="create-aed-amount" placeholder="AED amount (2 decimals)" />
+      <input id="create-buyer" placeholder="Buyer address" />
+      <button id="create-btn" disabled>Create</button>
+    </div>
+    <div class="action-row">
+      <strong>Deposit Bond</strong>
+      <input id="deposit-bond-id" placeholder="Settlement ID" />
+      <button id="deposit-bond-btn" disabled>Deposit</button>
+    </div>
+    <div class="action-row">
+      <strong>Deposit AED</strong>
+      <input id="deposit-aed-id" placeholder="Settlement ID" />
+      <button id="deposit-aed-btn" disabled>Deposit</button>
+    </div>
+    <div class="action-row">
+      <strong>Execute Settlement</strong>
+      <input id="execute-id" placeholder="Settlement ID" />
+      <button id="execute-btn" disabled>Execute</button>
+    </div>
+    <div class="action-row">
+      <strong>Cancel Settlement</strong>
+      <input id="cancel-id" placeholder="Settlement ID" />
+      <input id="cancel-reason" placeholder="Reason" />
+      <button id="cancel-btn" disabled>Cancel</button>
+    </div>
+    <div class="action-row">
+      <strong>Claim Expired Refund</strong>
+      <input id="claim-id" placeholder="Settlement ID" />
+      <button id="claim-btn" disabled>Claim</button>
+    </div>
+    <div class="action-row">
+      <strong>Settlement Timeout</strong>
+      <input id="timeout-seconds" placeholder="Seconds (>= 3600)" />
+      <button id="timeout-btn" disabled>Update</button>
+    </div>
+    <div class="action-row">
+      <strong>Pause Controls</strong>
+      <button id="pause-btn" disabled>Pause</button>
+      <button id="unpause-btn" disabled>Unpause</button>
+    </div>
+
+    <h5>Read Actions</h5>
+    <div class="action-row">
+      <strong>Settlement Summary</strong>
+      <button id="summary-btn" disabled>Load</button>
+    </div>
+    <div class="action-row">
+      <strong>Get Settlement</strong>
+      <input id="get-id" placeholder="Settlement ID" />
+      <button id="get-btn" disabled>Get</button>
+    </div>
+    <div class="action-row">
+      <strong>Can Execute?</strong>
+      <input id="can-execute-id" placeholder="Settlement ID" />
+      <button id="can-execute-btn" disabled>Check</button>
+    </div>
+    <div class="action-row">
+      <strong>Participant Settlements</strong>
+      <input id="participant-address" placeholder="Participant address" />
+      <input id="participant-offset" placeholder="Offset" />
+      <input id="participant-limit" placeholder="Limit" />
+      <button id="participant-btn" disabled>Fetch</button>
+    </div>
+  </section>
+
+  <pre id="msg"></pre>
+
+  <script src="https://cdn.jsdelivr.net/npm/ethers@6/dist/ethers.umd.min.js"></script>
+  <script type="module" src="js/config.js"></script>
+  <script type="module" src="js/wallet.js"></script>
+  <script type="module" src="js/dvpSettlement.js"></script>
+</body>
+</html>

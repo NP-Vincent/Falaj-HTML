@@ -6,6 +6,8 @@ This repository hosts lightweight HTML + JavaScript interfaces for interacting w
 
 - `IdentityRegistry.html` – a standalone interface for the `IdentityRegistry` contract.
 - `AEDStablecoin.html` – a standalone interface for the `AEDStablecoin` contract.
+- `BondToken.html` – a standalone interface for the `BondToken` contract.
+- `DvPSettlement.html` – a standalone interface for the `DvPSettlement` contract.
 - `js/` – shared JavaScript modules for wallet connection, contract wiring, and UI logic.
 - `contract/abi/` – ABI JSON files consumed by the interfaces.
 
@@ -22,6 +24,8 @@ Then open:
 
 - `http://localhost:8000/IdentityRegistry.html`
 - `http://localhost:8000/AEDStablecoin.html`
+- `http://localhost:8000/BondToken.html`
+- `http://localhost:8000/DvPSettlement.html`
 
 ## IdentityRegistry interface
 
@@ -58,6 +62,37 @@ Contract and network configuration lives in `js/config.js`:
 
 - `AED_STABLECOIN_ADDRESS` – deployed contract address
 - `AED_STABLECOIN_ABI_URL` – ABI location under `contract/abi/`
+
+## BondToken interface
+
+The Bond Token UI provides:
+
+- Wallet connect/disconnect
+- Bond summary (lifecycle state, issuer, ISIN, coupon, supply)
+- Write actions: transfer, approve, activate, mark matured/redeemed, freeze/unfreeze, pause
+- Read actions: balance, allowance, eligibility checks, transfer eligibility, time to maturity
+
+### Configuration
+
+Contract and network configuration lives in `js/config.js`:
+
+- `BOND_TOKEN_ADDRESS` – deployed contract address
+- `BOND_TOKEN_ABI_URL` – ABI location under `contract/abi/`
+
+## DvPSettlement interface
+
+The DvP Settlement UI provides:
+
+- Wallet connect/disconnect
+- Settlement creation, deposits, execution, cancellation, and timeout updates
+- Read actions for settlement summaries, per-settlement details, and participant history
+
+### Configuration
+
+Contract and network configuration lives in `js/config.js`:
+
+- `DVP_SETTLEMENT_ADDRESS` – deployed contract address
+- `DVP_SETTLEMENT_ABI_URL` – ABI location under `contract/abi/`
 
 ## Adding a new contract interface
 
