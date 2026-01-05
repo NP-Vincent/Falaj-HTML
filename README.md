@@ -184,3 +184,24 @@ Contract and network configuration lives in `js/config.js`:
 - No build step or framework is required; vanilla HTML/JS only.
 - `notes/deployment_log.md` contains the latest contract addresses.
 - `notes/Testnet_Details.md` contains details of the Falaj Testnet.
+
+## Falaj Testnet default chain settings (deployed)
+
+Use these defaults when configuring wallets or tooling against the current Falaj Testnet deployment:
+
+- **EVM Chain ID:** `75417`
+- **Native token symbol:** `E-AED`
+- **Blockchain ID:** `H3hnSLUCbiQaY92f34SyiUFCpfiHqm1HkGtig5BDBKKk3ZJYB`
+- **Subnet ID:** `Umsy6NpNisVtZ3KfXscumZcMPpVYat2m4tJSmAa3WJzPWkh9Q`
+- **VM ID:** `srEXiWaHuhNyGwPUi444Tu47ZEDwxTWrbQiuD7FmgSAQ6X7Dy`
+- **RPC URL:** `https://nodes-prod.18.182.4.86.sslip.io/ext/bc/H3hnSLUCbiQaY92f34SyiUFCpfiHqm1HkGtig5BDBKKk3ZJYB/rpc`
+- **Validator Manager (UUPS proxy):** `0xfacade0000000000000000000000000000000000`
+- **TeleporterMessenger:** `0x253b2784c75e510dD0fF1da844684a1aC0aa5fcf`
+- **TeleporterRegistry:** `0x75fd8d3f961e2e8fcb810e87021f9cdd26a3fce6`
+- **ICM Demo:** v1 `0xab9541ba5e7e496645473231c561e36036e7665e`, v2 `0x3a2ba0fa33ecc8c6be5e7c23185d7ca07493b5e4`
+- **Explorer:** `https://build.avax.network/explorer/H3hnSLUCbiQaY92f34SyiUFCpfiHqm1HkGtig5BDBKKk3ZJYB`
+
+Full deployment references and source links live in:
+
+- `notes/Falaj_Testnet_Deployed_Details.md`
+- `notes/Falaj_Testnet_References.md`

@@ -5,6 +5,26 @@ Launch a permissioned Avalanche Layer-1 (custom subnet) on Fuji testnet that enf
 compliance rules for an AED stablecoin and demonstrates a cross-chain payment via Avalanche’s Warp
 Messaging (ICM) protocol.
 
+## Falaj Testnet default chain settings (deployed)
+
+Use these settings when validating the current default Falaj Testnet deployment:
+
+- **EVM Chain ID:** `75417`
+- **Native token symbol:** `E-AED`
+- **Blockchain ID:** `H3hnSLUCbiQaY92f34SyiUFCpfiHqm1HkGtig5BDBKKk3ZJYB`
+- **Subnet ID:** `Umsy6NpNisVtZ3KfXscumZcMPpVYat2m4tJSmAa3WJzPWkh9Q`
+- **VM ID:** `srEXiWaHuhNyGwPUi444Tu47ZEDwxTWrbQiuD7FmgSAQ6X7Dy`
+- **RPC URL:** `https://nodes-prod.18.182.4.86.sslip.io/ext/bc/H3hnSLUCbiQaY92f34SyiUFCpfiHqm1HkGtig5BDBKKk3ZJYB/rpc`
+- **Validator Manager (UUPS proxy):** `0xfacade0000000000000000000000000000000000`
+- **TeleporterMessenger:** `0x253b2784c75e510dD0fF1da844684a1aC0aa5fcf`
+- **TeleporterRegistry:** `0x75fd8d3f961e2e8fcb810e87021f9cdd26a3fce6`
+- **ICM Demo:** v1 `0xab9541ba5e7e496645473231c561e36036e7665e`, v2 `0x3a2ba0fa33ecc8c6be5e7c23185d7ca07493b5e4`
+- **Explorer:** `https://build.avax.network/explorer/H3hnSLUCbiQaY92f34SyiUFCpfiHqm1HkGtig5BDBKKk3ZJYB`
+
+For the full deployment record (including additional validation metadata), see:
+
+- `notes/Falaj_Testnet_Deployed_Details.md`
+
 ## Phase 1: Foundation (Days 1–4) – Set Up the Blockchain
 
 - **Create the Avalanche L1 via CLI:** Use the Avalanche-CLI to build your chain config. For example,
@@ -183,3 +203,10 @@ By the end of Day 14, you should have:
 - [Gas Fees and Gas Limit | Avalanche Builder Hub](https://build.avax.network/academy/avalanche-l1/customizing-evm/05-genesis-configuration/04-gas-fees-and-limit)
 - [Microsoft Azure | Avalanche Builder Hub](https://build.avax.network/docs/nodes/run-a-node/on-third-party-services/microsoft-azure)
 - [Integration with EVM | Avalanche Builder Hub](https://build.avax.network/docs/cross-chain/avalanche-warp-messaging/evm-integration)
+- [Deployer allowlist precompile | Avalanche Builder Hub](https://build.avax.network/docs/avalanche-l1s/precompiles/deployer-allowlist)
+- [Validator manager contract | Avalanche Builder Hub](https://build.avax.network/docs/avalanche-l1s/validator-manager/contract)
+- [NativeTokenStakingManager.sol (pinned)](https://github.com/ava-labs/icm-contracts/blob/4d5ab0b6dbc653770cfe9709878c9406eb28b71c/contracts/validator-manager/NativeTokenStakingManager.sol)
+- [ValidatorManager.sol (pinned)](https://github.com/ava-labs/icm-contracts/blob/4d5ab0b6dbc653770cfe9709878c9406eb28b71c/contracts/validator-manager/ValidatorManager.sol)
+- [ValidatorMessages.sol (pinned)](https://github.com/ava-labs/icm-contracts/blob/4d5ab0b6dbc653770cfe9709878c9406eb28b71c/contracts/validator-manager/ValidatorMessages.sol)
+- [TransparentUpgradeableProxy.sol (release-v4.9)](https://github.com/OpenZeppelin/openzeppelin-contracts/blob/release-v4.9/contracts/proxy/transparent/TransparentUpgradeableProxy.sol)
+- `notes/Falaj_Testnet_References.md`
