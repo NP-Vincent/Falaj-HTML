@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Falaj Contract Interfaces</title>
+  <link rel="stylesheet" href="css/logs.css" />
   <style>
     :root {
       color-scheme: light;
@@ -20,7 +21,7 @@
 
     main {
       max-width: 720px;
-      margin: 0 auto;
+      margin: 0;
       background: #ffffff;
       border-radius: 16px;
       padding: 32px;
@@ -77,7 +78,8 @@
   </style>
 </head>
 <body>
-  <main>
+  <div class="page-layout">
+    <main class="page-main">
     <nav class="page-nav">
       <a href="index.html">Home</a>
       <a href="IdentityRegistry.html">IdentityRegistry</a>
@@ -128,6 +130,34 @@
     </ul>
 
     <p class="hint">Serve this folder over HTTP (for example: <code>python3 -m http.server 8000</code>).</p>
-  </main>
+    </main>
+    <aside class="log-panel">
+      <h4>Logs</h4>
+      <div class="log-section">
+        <div class="log-section-header">
+          <span>Event Log</span>
+          <div class="log-actions">
+            <button type="button" data-log-action="copy" data-log-target="event">Copy</button>
+            <button type="button" data-log-action="clear" data-log-target="event">Clear</button>
+          </div>
+        </div>
+        <div class="log-list" data-log-list="event"></div>
+      </div>
+      <div class="log-section">
+        <div class="log-section-header">
+          <span>Error Log</span>
+          <div class="log-actions">
+            <button type="button" data-log-action="copy" data-log-target="error">Copy</button>
+            <button type="button" data-log-action="clear" data-log-target="error">Clear</button>
+          </div>
+        </div>
+        <div class="log-list" data-log-list="error"></div>
+      </div>
+    </aside>
+  </div>
+  <script type="module">
+    import { initLogs } from './js/logs.js';
+    initLogs();
+  </script>
 </body>
 </html>

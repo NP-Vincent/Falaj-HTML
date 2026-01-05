@@ -13,6 +13,7 @@ import {
   onChainChanged,
   switchNetwork
 } from './wallet.js';
+import { initLogs, logEvent, logError } from './logs.js';
 
 const ethers = window.ethers;
 
@@ -62,6 +63,12 @@ async function getDvpAbi() {
 
 function show(msg) {
   document.getElementById('msg').textContent = msg;
+  logEvent(msg);
+}
+
+function showError(msg) {
+  document.getElementById('msg').textContent = msg;
+  logError(msg);
 }
 
 function setActionButtonsEnabled(enabled) {
@@ -373,15 +380,16 @@ function wireButton(id, handler) {
       show('Working...');
       await handler();
     } catch (err) {
-      show(`Error: ${err.message || err}`);
+      showError(`Error: ${err.message || err}`);
     }
   });
 }
 
 function boot() {
+  initLogs();
   renderContractAddress();
   document.getElementById('connect-btn').addEventListener('click', () => {
-    handleConnect().catch((err) => show(`Error: ${err.message || err}`));
+    handleConnect().catch((err) => showError(`Error: ${err.message || err}`));
   });
   document.getElementById('disconnect-btn').addEventListener('click', handleDisconnect);
 

@@ -3,8 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <title>Identity Registry</title>
+  <link rel="stylesheet" href="css/logs.css" />
   <style>
-    body { font-family: sans-serif; margin: auto; }
+    body { font-family: sans-serif; margin: 0; padding: 24px; }
     #msg { white-space: pre-wrap; }
     #connect-btn, #disconnect-btn {
       margin: 5px;
@@ -90,47 +91,49 @@
   </style>
 </head>
 <body>
-  <h3 id="page-title">Identity Registry</h3>
-  <nav class="page-nav">
-    <a href="index.html">Home</a>
-    <a href="IdentityRegistry.html">IdentityRegistry</a>
-    <a href="AEDStablecoin.html">AEDStablecoin</a>
-    <a href="BondToken.html">BondToken</a>
-    <a href="DvPSettlement.html">DvPSettlement</a>
-    <a href="FeeDistribution.html">FeeDistribution</a>
-    <a href="PaymentProcessor.html">PaymentProcessor</a>
-    <a href="RegulatedBridgeManager.html">RegulatedBridgeManager</a>
-    <a href="ValidatorStakingManager.html">ValidatorStakingManager</a>
-  </nav>
-  <button id="connect-btn">Connect Wallet</button>
-  <button id="disconnect-btn" style="display:none;">Disconnect</button>
-  <section class="actions">
-    <h4>Identity Registry Actions</h4>
-    <div class="role-reference">
-      <h5>Role Reference</h5>
-      <table>
-        <thead>
-          <tr>
-            <th>Role label</th>
-            <th>bytes32 hash</th>
-            <th>Admin role</th>
-            <th>Deployer role</th>
-          </tr>
-        </thead>
-        <tbody id="role-reference-body"></tbody>
-      </table>
-      <p class="role-note">
-        You can type role labels instead of hashes in inputs—<code>parseRole()</code> converts labels to hashes.
-      </p>
-    </div>
-    <h5>Write Actions</h5>
-    <div class="action-row">
-      <strong>Add Participant</strong>
-      <input id="add-account" placeholder="Account address" />
-      <input id="add-role" placeholder="Role (bytes32 or label)" />
-      <input id="add-expiry" placeholder="KYC expiry (unix timestamp)" />
-      <button id="add-participant-btn" disabled>Add</button>
-    </div>
+  <div class="page-layout">
+    <div class="page-main">
+      <h3 id="page-title">Identity Registry</h3>
+      <nav class="page-nav">
+        <a href="index.html">Home</a>
+        <a href="IdentityRegistry.html">IdentityRegistry</a>
+        <a href="AEDStablecoin.html">AEDStablecoin</a>
+        <a href="BondToken.html">BondToken</a>
+        <a href="DvPSettlement.html">DvPSettlement</a>
+        <a href="FeeDistribution.html">FeeDistribution</a>
+        <a href="PaymentProcessor.html">PaymentProcessor</a>
+        <a href="RegulatedBridgeManager.html">RegulatedBridgeManager</a>
+        <a href="ValidatorStakingManager.html">ValidatorStakingManager</a>
+      </nav>
+      <button id="connect-btn">Connect Wallet</button>
+      <button id="disconnect-btn" style="display:none;">Disconnect</button>
+      <section class="actions">
+        <h4>Identity Registry Actions</h4>
+        <div class="role-reference">
+          <h5>Role Reference</h5>
+          <table>
+            <thead>
+              <tr>
+                <th>Role label</th>
+                <th>bytes32 hash</th>
+                <th>Admin role</th>
+                <th>Deployer role</th>
+              </tr>
+            </thead>
+            <tbody id="role-reference-body"></tbody>
+          </table>
+          <p class="role-note">
+            You can type role labels instead of hashes in inputs—<code>parseRole()</code> converts labels to hashes.
+          </p>
+        </div>
+        <h5>Write Actions</h5>
+        <div class="action-row">
+          <strong>Add Participant</strong>
+          <input id="add-account" placeholder="Account address" />
+          <input id="add-role" placeholder="Role (bytes32 or label)" />
+          <input id="add-expiry" placeholder="KYC expiry (unix timestamp)" />
+          <button id="add-participant-btn" disabled>Add</button>
+        </div>
     <div class="action-row">
       <strong>Change Role</strong>
       <input id="change-account" placeholder="Account address" />
@@ -232,7 +235,32 @@
       <button id="participants-btn" disabled>Fetch</button>
     </div>
   </section>
-  <pre id="msg"></pre>
+      <pre id="msg"></pre>
+    </div>
+    <aside class="log-panel">
+      <h4>Logs</h4>
+      <div class="log-section">
+        <div class="log-section-header">
+          <span>Event Log</span>
+          <div class="log-actions">
+            <button type="button" data-log-action="copy" data-log-target="event">Copy</button>
+            <button type="button" data-log-action="clear" data-log-target="event">Clear</button>
+          </div>
+        </div>
+        <div class="log-list" data-log-list="event"></div>
+      </div>
+      <div class="log-section">
+        <div class="log-section-header">
+          <span>Error Log</span>
+          <div class="log-actions">
+            <button type="button" data-log-action="copy" data-log-target="error">Copy</button>
+            <button type="button" data-log-action="clear" data-log-target="error">Clear</button>
+          </div>
+        </div>
+        <div class="log-list" data-log-list="error"></div>
+      </div>
+    </aside>
+  </div>
 
   <script src="https://cdn.jsdelivr.net/npm/ethers@6/dist/ethers.umd.min.js"></script>
   <script type="module" src="js/config.js"></script>
