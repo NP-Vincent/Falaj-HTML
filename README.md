@@ -107,3 +107,5 @@ Contract and network configuration lives in `js/config.js`:
 
 - These pages are intentionally minimal to make it easier to reason about contract behavior.
 - No build step or framework is required; vanilla HTML/JS only.
+- `notes/deployment_log.md` contains the latest contract addresses.
+- `notes/Testnet_Details.md` contains details of the Falaj Testnet.

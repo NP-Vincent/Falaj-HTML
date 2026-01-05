@@ -16,6 +16,8 @@ This repo contains lightweight HTML + JavaScript pages used to exercise deployed
 
 - Update `README.md` whenever a new interface or major capability is added.
 - Provide clear instructions for running via a simple HTTP server.
+- `notes/deployment_log.md` contains the latest contract addresses.
+- `notes/Testnet_Details.md` contains details of the Falaj Testnet.
 
 ## Testing
 
