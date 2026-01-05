@@ -46,10 +46,9 @@ Each interface page includes a right-hand log panel with separate event and erro
 The Identity Registry UI provides:
 
 - Wallet connect/disconnect
-- Role reference table (labels ↔ bytes32 hashes)
 - Write actions: add/change/remove/freeze participants, renew KYC, pause, precompile sync
 - Access control: grant/revoke/renounce roles
-- Read actions: role admin, has role, current role, allowed to transact, participant state, etc.
+- Read actions: participant lookups, role checks, allowed-to-transact checks, and registry summary data.
 
 ### Configuration
 
