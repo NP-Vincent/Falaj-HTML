@@ -65,13 +65,14 @@ function setActionButtonsEnabled(enabled) {
   const actionButtons = [
     'pause-btn',
     'unpause-btn',
-    'receive-warp-btn',
+    'receive-teleporter-btn',
     'rescue-tokens-btn',
     'set-stablecoin-btn',
     'set-authorized-chain-btn',
     'set-bridge-reserve-btn',
     'set-minting-mode-btn',
     'set-payment-processor-btn',
+    'set-teleporter-messenger-btn',
     'summary-btn',
     'bridge-stats-btn',
     'can-receive-btn',
@@ -100,6 +101,18 @@ function parseAddress(value, label) {
   return address;
 }
 
+function parseTokenAddress(value, label) {
+  const sanitized = requireValue(value, label);
+  const lowered = sanitized.toLowerCase();
+  if (lowered === 'native' || lowered === '0x0') {
+    return ethers.ZeroAddress;
+  }
+  if (!ethers.isAddress(sanitized)) {
+    throw new Error(`${label} must be a valid address or 'native'.`);
+  }
+  return sanitized;
+}
+
 function parseBytes32(value, label) {
   const sanitized = requireValue(value, label);
   if (sanitized.startsWith('0x') && sanitized.length === 66) {
@@ -108,16 +121,18 @@ function parseBytes32(value, label) {
   return ethers.id(sanitized);
 }
 
-function parseUint(value, label, allowZero = true) {
+function parseHexBytes(value, label) {
   const sanitized = requireValue(value, label);
-  if (!/^\d+$/.test(sanitized)) {
-    throw new Error(`${label} must be a whole number.`);
+  if (!sanitized.startsWith('0x')) {
+    throw new Error(`${label} must start with 0x.`);
   }
-  const parsed = BigInt(sanitized);
-  if (!allowZero && parsed === 0n) {
-    throw new Error(`${label} must be greater than 0.`);
+  if (!/^0x[0-9a-fA-F]*$/.test(sanitized)) {
+    throw new Error(`${label} must be hex encoded.`);
   }
-  return parsed;
+  if ((sanitized.length - 2) % 2 !== 0) {
+    throw new Error(`${label} must have an even number of hex characters.`);
+  }
+  return sanitized;
 }
 
 function parseTokenAmount(value, label) {
@@ -187,16 +202,23 @@ async function handleUnpause() {
   show(`Unpause confirmed: ${tx.hash}`);
 }
 
-async function handleReceiveWarp() {
+async function handleReceiveTeleporterMessage() {
   const contract = await ensureBridgeManager();
-  const index = parseUint(document.getElementById('warp-index').value, 'Warp message index', false);
-  const success = await contract.receiveWarpMessage(index);
-  show(`Warp message processed: ${success}`);
+  const sourceChainId = parseBytes32(
+    document.getElementById('teleporter-source-chain-id').value,
+    'Source chain ID'
+  );
+  const originSender = parseAddress(document.getElementById('teleporter-origin-sender').value, 'Origin sender');
+  const payload = parseHexBytes(document.getElementById('teleporter-payload').value, 'Payload');
+  const tx = await contract.receiveTeleporterMessage(sourceChainId, originSender, payload);
+  show(`Teleporter message submitted: ${tx.hash}`);
+  await tx.wait();
+  show(`Teleporter message confirmed: ${tx.hash}`);
 }
 
 async function handleRescueTokens() {
   const contract = await ensureBridgeManager();
-  const token = parseAddress(document.getElementById('rescue-token').value, 'Token');
+  const token = parseTokenAddress(document.getElementById('rescue-token').value, 'Token');
   const amount = parseTokenAmount(document.getElementById('rescue-amount').value, 'Token amount');
   const tx = await contract.rescueTokens(token, amount);
   show(`Rescue submitted: ${tx.hash}`);
@@ -251,6 +273,15 @@ async function handleSetPaymentProcessor() {
   show(`Payment processor update confirmed: ${tx.hash}`);
 }
 
+async function handleSetTeleporterMessenger() {
+  const contract = await ensureBridgeManager();
+  const messenger = parseAddress(document.getElementById('teleporter-messenger').value, 'Teleporter messenger');
+  const tx = await contract.setTeleporterMessenger(messenger);
+  show(`Teleporter messenger update submitted: ${tx.hash}`);
+  await tx.wait();
+  show(`Teleporter messenger update confirmed: ${tx.hash}`);
+}
+
 async function handleSummary() {
   const contract = await ensureBridgeManager();
   const [
@@ -259,20 +290,26 @@ async function handleSummary() {
     useMinting,
     totalBridgedIn,
     totalTransactions,
-    paused
+    paused,
+    identityRegistry,
+    teleporterMessenger
   ] = await Promise.all([
     contract.aedStablecoin(),
     contract.bridgeReserve(),
     contract.useMinting(),
     contract.totalBridgedIn(),
     contract.totalBridgeTransactions(),
-    contract.paused()
+    contract.paused(),
+    contract.identityRegistry(),
+    contract.teleporterMessenger()
   ]);
   const output = [
+    `Identity registry: ${identityRegistry}`,
     `AED stablecoin: ${stablecoin}`,
     `Bridge reserve: ${bridgeReserve}`,
     `Use minting: ${useMinting}`,
-    `Total bridged in: ${ethers.formatEther(totalBridgedIn)} AED`,
+    `Teleporter messenger: ${teleporterMessenger}`,
+    `Total bridged in: ${ethers.formatUnits(totalBridgedIn, 2)} AED`,
     `Total bridge transactions: ${totalTransactions}`,
     `Paused: ${paused}`
   ];
@@ -283,7 +320,7 @@ async function handleBridgeStats() {
   const contract = await ensureBridgeManager();
   const stats = await contract.getBridgeStats();
   const output = [
-    `Total bridged in: ${ethers.formatEther(stats._totalBridgedIn)} AED`,
+    `Total bridged in: ${ethers.formatUnits(stats._totalBridgedIn, 2)} AED`,
     `Total transactions: ${stats._totalTransactions}`
   ];
   show(output.join('\n'));
@@ -340,13 +377,14 @@ function boot() {
 
   wireButton('pause-btn', handlePause);
   wireButton('unpause-btn', handleUnpause);
-  wireButton('receive-warp-btn', handleReceiveWarp);
+  wireButton('receive-teleporter-btn', handleReceiveTeleporterMessage);
   wireButton('rescue-tokens-btn', handleRescueTokens);
   wireButton('set-stablecoin-btn', handleSetStablecoin);
   wireButton('set-authorized-chain-btn', handleSetAuthorizedChain);
   wireButton('set-bridge-reserve-btn', handleSetBridgeReserve);
   wireButton('set-minting-mode-btn', handleSetMintingMode);
   wireButton('set-payment-processor-btn', handleSetPaymentProcessor);
+  wireButton('set-teleporter-messenger-btn', handleSetTeleporterMessenger);
   wireButton('summary-btn', handleSummary);
   wireButton('bridge-stats-btn', handleBridgeStats);
   wireButton('can-receive-btn', handleCanReceive);

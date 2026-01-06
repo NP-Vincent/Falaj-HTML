@@ -79,7 +79,7 @@
     <div class="action-row">
       <strong>Deposit Stablecoin</strong>
       <input id="deposit-stablecoin-token" placeholder="Token address" />
-      <input id="deposit-stablecoin-amount" placeholder="Amount (18 decimals)" />
+      <input id="deposit-stablecoin-amount" placeholder="Amount (token decimals)" />
       <input id="deposit-stablecoin-recipient" placeholder="Recipient address" />
       <input id="deposit-stablecoin-ref" placeholder="Payment reference" />
       <button id="deposit-stablecoin-btn" disabled>Deposit</button>
@@ -109,7 +109,7 @@
     </div>
     <div class="action-row">
       <strong>Set Exchange Rate</strong>
-      <input id="exchange-rate-token" placeholder="Token address" />
+      <input id="exchange-rate-token" placeholder="Token address or 'native'" />
       <input id="exchange-rate-value" placeholder="Rate to AED (uint256)" />
       <button id="set-exchange-rate-btn" disabled>Set</button>
     </div>
@@ -117,6 +117,11 @@
       <strong>Set Protocol Fee (bps)</strong>
       <input id="protocol-fee-value" placeholder="Basis points" />
       <button id="set-protocol-fee-btn" disabled>Set</button>
+    </div>
+    <div class="action-row">
+      <strong>Set Teleporter Messenger</strong>
+      <input id="teleporter-messenger" placeholder="Teleporter messenger address" />
+      <button id="set-teleporter-messenger-btn" disabled>Set</button>
     </div>
     <div class="action-row">
       <strong>Withdraw Fees</strong>
@@ -150,7 +155,7 @@
     </div>
     <div class="action-row">
       <strong>Get Exchange Rate</strong>
-      <input id="exchange-rate-query-token" placeholder="Token address" />
+      <input id="exchange-rate-query-token" placeholder="Token address or 'native'" />
       <button id="exchange-rate-btn" disabled>Get Rate</button>
     </div>
     <div class="action-row">
@@ -160,13 +165,13 @@
     </div>
     <div class="action-row">
       <strong>Token Supported?</strong>
-      <input id="token-supported-token" placeholder="Token address" />
+      <input id="token-supported-token" placeholder="Token address or 'native'" />
       <button id="token-supported-btn" disabled>Check</button>
     </div>
     <div class="action-row">
       <strong>Calculate AED Amount</strong>
-      <input id="calculate-aed-token" placeholder="Token address" />
-      <input id="calculate-aed-amount" placeholder="Amount (18 decimals)" />
+      <input id="calculate-aed-token" placeholder="Token address or 'native'" />
+      <input id="calculate-aed-amount" placeholder="Amount (token decimals)" />
       <button id="calculate-aed-btn" disabled>Calculate</button>
     </div>
   </section>
