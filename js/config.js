@@ -7,6 +7,9 @@ export const FALAJ_NETWORK = {
 };
 
 export const EXPLORER_BASE = 'https://build.avax.network/explorer/H3hnSLUCbiQaY92f34SyiUFCpfiHqm1HkGtig5BDBKKk3ZJYB';
+export const FALAJ_BLOCKCHAIN_ID = 'H3hnSLUCbiQaY92f34SyiUFCpfiHqm1HkGtig5BDBKKk3ZJYB';
+export const TELEPORTER_MESSENGER_ADDRESS = '0x253b2784c75e510dD0fF1da844684a1aC0aa5fcf';
+export const TELEPORTER_REGISTRY_ADDRESS = '0x75fd8d3f961e2e8fcb810e87021f9cdd26a3fce6';
 
 export const AVALANCHE_TESTNET_C_NETWORK = {
   chainId: 43113,
@@ -17,6 +20,7 @@ export const AVALANCHE_TESTNET_C_NETWORK = {
 };
 
 export const AVALANCHE_FUJI_C_CHAIN_EXPLORER_BASE = 'https://subnets-test.avax.network/c-chain';
+export const AVALANCHE_FUJI_C_CHAIN_BLOCKCHAIN_ID = 'yH8D7ThNJkxmtkuv2jgBa4P1Rn3Qpr4pPr7QYNfcdoS6k6HWp';
 
 export const AED_STABLECOIN_ADDRESS = '0xa5be895EB6DD499b688AE4bD42Fd78500cE24b0F';
 export const AED_STABLECOIN_ABI_URL = 'contract/abi/AEDStablecoin.json';

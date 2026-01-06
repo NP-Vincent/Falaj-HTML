@@ -138,6 +138,10 @@ Contract and network configuration lives in `js/config.js`:
 
 - `PAYMENT_PROCESSOR_ADDRESS` – deployed contract address
 - `PAYMENT_PROCESSOR_ABI_URL` – ABI location under `contract/abi/`
+- `TELEPORTER_MESSENGER_ADDRESS` – Teleporter messenger used for cross-chain routing
+- `TELEPORTER_REGISTRY_ADDRESS` – Teleporter registry for chain metadata
+- `FALAJ_BLOCKCHAIN_ID` – Falaj Testnet blockchain ID for Teleporter routing
+- `AVALANCHE_FUJI_C_CHAIN_BLOCKCHAIN_ID` – Fuji C-Chain blockchain ID for Teleporter routing
 
 ## RegulatedBridgeManager interface
 
