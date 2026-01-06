@@ -14,6 +14,7 @@ import {
   switchNetwork
 } from './wallet.js';
 import { initLogs, logEvent, logError } from './logs.js';
+import { fetchRoleValues } from './roles.js';
 
 const ethers = window.ethers;
 
@@ -74,6 +75,7 @@ function setActionButtonsEnabled(enabled) {
     'unfreeze-btn',
     'emergency-btn',
     'summary-btn',
+    'roles-btn',
     'balance-btn',
     'allowance-btn',
     'frozen-btn',
@@ -268,6 +270,17 @@ async function handleSummary() {
   show(output.join('\n'));
 }
 
+async function handleRoles() {
+  const contract = await ensureStablecoin();
+  const abi = await getStablecoinAbi();
+  const roles = await fetchRoleValues(contract, abi);
+  if (!roles.length) {
+    show('No role constants found in ABI.');
+    return;
+  }
+  show(roles.map((role) => `${role.name}: ${role.value}`).join('\n'));
+}
+
 async function handleBalance() {
   const contract = await ensureStablecoin();
   const account = parseAddress(document.getElementById('balance-account').value, 'Account');
@@ -329,6 +342,7 @@ function boot() {
   wireButton('unfreeze-btn', handleUnfreeze);
   wireButton('emergency-btn', handleEmergencyTransfer);
   wireButton('summary-btn', handleSummary);
+  wireButton('roles-btn', handleRoles);
   wireButton('balance-btn', handleBalance);
   wireButton('allowance-btn', handleAllowance);
   wireButton('frozen-btn', handleFrozen);

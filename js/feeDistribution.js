@@ -14,6 +14,7 @@ import {
   switchNetwork
 } from './wallet.js';
 import { initLogs, logEvent, logError } from './logs.js';
+import { fetchRoleValues } from './roles.js';
 
 const ethers = window.ethers;
 
@@ -74,6 +75,7 @@ function setActionButtonsEnabled(enabled) {
     'revoke-role-btn',
     'renounce-role-btn',
     'summary-btn',
+    'roles-btn',
     'stats-btn',
     'role-admin-btn',
     'has-role-btn'
@@ -298,6 +300,17 @@ async function handleSummary() {
   show(output.join('\n'));
 }
 
+async function handleRoles() {
+  const contract = await ensureFeeDistribution();
+  const abi = await getFeeDistributionAbi();
+  const roles = await fetchRoleValues(contract, abi);
+  if (!roles.length) {
+    show('No role constants found in ABI.');
+    return;
+  }
+  show(roles.map((role) => `${role.name}: ${role.value}`).join('\n'));
+}
+
 async function handleStats() {
   const contract = await ensureFeeDistribution();
   const stats = await contract.getDistributionStats();
@@ -357,6 +370,7 @@ function boot() {
   wireButton('revoke-role-btn', handleRevokeRole);
   wireButton('renounce-role-btn', handleRenounceRole);
   wireButton('summary-btn', handleSummary);
+  wireButton('roles-btn', handleRoles);
   wireButton('stats-btn', handleStats);
   wireButton('role-admin-btn', handleRoleAdmin);
   wireButton('has-role-btn', handleHasRole);

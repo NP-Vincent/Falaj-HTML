@@ -14,6 +14,7 @@ import {
   switchNetwork
 } from './wallet.js';
 import { initLogs, logEvent, logError } from './logs.js';
+import { fetchRoleValues } from './roles.js';
 
 const ethers = window.ethers;
 
@@ -76,6 +77,7 @@ function setActionButtonsEnabled(enabled) {
     'pause-btn',
     'unpause-btn',
     'summary-btn',
+    'roles-btn',
     'balance-btn',
     'allowance-btn',
     'eligible-btn',
@@ -298,6 +300,17 @@ async function handleSummary() {
   show(output.join('\n'));
 }
 
+async function handleRoles() {
+  const contract = await ensureBondToken();
+  const abi = await getBondTokenAbi();
+  const roles = await fetchRoleValues(contract, abi);
+  if (!roles.length) {
+    show('No role constants found in ABI.');
+    return;
+  }
+  show(roles.map((role) => `${role.name}: ${role.value}`).join('\n'));
+}
+
 async function handleBalance() {
   const contract = await ensureBondToken();
   const account = parseAddress(document.getElementById('balance-account').value, 'Account');
@@ -365,6 +378,7 @@ function boot() {
   wireButton('pause-btn', handlePause);
   wireButton('unpause-btn', handleUnpause);
   wireButton('summary-btn', handleSummary);
+  wireButton('roles-btn', handleRoles);
   wireButton('balance-btn', handleBalance);
   wireButton('allowance-btn', handleAllowance);
   wireButton('eligible-btn', handleEligibleInvestor);

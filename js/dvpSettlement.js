@@ -14,6 +14,7 @@ import {
   switchNetwork
 } from './wallet.js';
 import { initLogs, logEvent, logError } from './logs.js';
+import { fetchRoleValues } from './roles.js';
 
 const ethers = window.ethers;
 
@@ -83,6 +84,7 @@ function setActionButtonsEnabled(enabled) {
     'pause-btn',
     'unpause-btn',
     'summary-btn',
+    'roles-btn',
     'get-btn',
     'can-execute-btn',
     'participant-btn'
@@ -312,6 +314,17 @@ async function handleSummary() {
   show(output.join('\n'));
 }
 
+async function handleRoles() {
+  const contract = await ensureDvpSettlement();
+  const abi = await getDvpAbi();
+  const roles = await fetchRoleValues(contract, abi);
+  if (!roles.length) {
+    show('No role constants found in ABI.');
+    return;
+  }
+  show(roles.map((role) => `${role.name}: ${role.value}`).join('\n'));
+}
+
 async function handleGetSettlement() {
   const contract = await ensureDvpSettlement();
   const id = parseId(document.getElementById('get-id').value);
@@ -403,6 +416,7 @@ function boot() {
   wireButton('pause-btn', handlePause);
   wireButton('unpause-btn', handleUnpause);
   wireButton('summary-btn', handleSummary);
+  wireButton('roles-btn', handleRoles);
   wireButton('get-btn', handleGetSettlement);
   wireButton('can-execute-btn', handleCanExecute);
   wireButton('participant-btn', handleParticipantSettlements);

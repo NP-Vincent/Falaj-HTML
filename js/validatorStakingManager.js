@@ -14,6 +14,7 @@ import {
   switchNetwork
 } from './wallet.js';
 import { initLogs, logEvent, logError } from './logs.js';
+import { fetchRoleValues } from './roles.js';
 
 const ethers = window.ethers;
 
@@ -78,6 +79,7 @@ function setActionButtonsEnabled(enabled) {
     'revoke-role-btn',
     'renounce-role-btn',
     'summary-btn',
+    'roles-btn',
     'validator-details-btn',
     'validator-stake-btn',
     'required-stake-btn',
@@ -361,6 +363,17 @@ async function handleSummary() {
   show(output.join('\n'));
 }
 
+async function handleRoles() {
+  const contract = await ensureStakingManager();
+  const abi = await getStakingManagerAbi();
+  const roles = await fetchRoleValues(contract, abi);
+  if (!roles.length) {
+    show('No role constants found in ABI.');
+    return;
+  }
+  show(roles.map((role) => `${role.name}: ${role.value}`).join('\n'));
+}
+
 async function handleValidatorDetails() {
   const contract = await ensureStakingManager();
   const validator = parseAddress(document.getElementById('validator-details-address').value, 'Validator');
@@ -463,6 +476,7 @@ function boot() {
   wireButton('revoke-role-btn', handleRevokeRole);
   wireButton('renounce-role-btn', handleRenounceRole);
   wireButton('summary-btn', handleSummary);
+  wireButton('roles-btn', handleRoles);
   wireButton('validator-details-btn', handleValidatorDetails);
   wireButton('validator-stake-btn', handleValidatorStake);
   wireButton('required-stake-btn', handleRequiredStake);

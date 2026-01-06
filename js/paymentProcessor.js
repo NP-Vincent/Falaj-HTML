@@ -14,6 +14,7 @@ import {
   switchNetwork
 } from './wallet.js';
 import { initLogs, logEvent, logError } from './logs.js';
+import { fetchRoleValues } from './roles.js';
 
 const ethers = window.ethers;
 
@@ -79,6 +80,7 @@ function setActionButtonsEnabled(enabled) {
     'revoke-role-btn',
     'renounce-role-btn',
     'summary-btn',
+    'roles-btn',
     'exchange-rate-btn',
     'destination-manager-btn',
     'token-supported-btn',
@@ -397,6 +399,17 @@ async function handleSummary() {
   show(output.join('\n'));
 }
 
+async function handleRoles() {
+  const contract = await ensurePaymentProcessor();
+  const abi = await getPaymentProcessorAbi();
+  const roles = await fetchRoleValues(contract, abi);
+  if (!roles.length) {
+    show('No role constants found in ABI.');
+    return;
+  }
+  show(roles.map((role) => `${role.name}: ${role.value}`).join('\n'));
+}
+
 async function handleExchangeRate() {
   const contract = await ensurePaymentProcessor();
   const token = parseTokenAddress(document.getElementById('exchange-rate-query-token').value, 'Token');
@@ -467,6 +480,7 @@ function boot() {
   wireButton('revoke-role-btn', handleRevokeRole);
   wireButton('renounce-role-btn', handleRenounceRole);
   wireButton('summary-btn', handleSummary);
+  wireButton('roles-btn', handleRoles);
   wireButton('exchange-rate-btn', handleExchangeRate);
   wireButton('destination-manager-btn', handleDestinationManager);
   wireButton('token-supported-btn', handleTokenSupported);
