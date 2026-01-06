@@ -1,8 +1,8 @@
 import {
+  AVALANCHE_TESTNET_C_NETWORK,
   PAYMENT_PROCESSOR_ABI_URL,
   PAYMENT_PROCESSOR_ADDRESS,
-  PAYMENT_PROCESSOR_EXPLORER_BASE,
-  PAYMENT_PROCESSOR_NETWORK
+  PAYMENT_PROCESSOR_EXPLORER_BASE
 } from './config.js';
 import {
   connectWallet,
@@ -165,9 +165,9 @@ async function ensurePaymentProcessor() {
 async function handleConnect() {
   await connectWallet();
   try {
-    await ensureCorrectNetwork(PAYMENT_PROCESSOR_NETWORK);
+    await ensureCorrectNetwork(AVALANCHE_TESTNET_C_NETWORK);
   } catch (err) {
-    await switchNetwork(PAYMENT_PROCESSOR_NETWORK);
+    await switchNetwork(AVALANCHE_TESTNET_C_NETWORK);
   }
   await ensurePaymentProcessor();
   document.getElementById('connect-btn').style.display = 'none';

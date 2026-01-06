@@ -8,7 +8,7 @@ export const FALAJ_NETWORK = {
 
 export const EXPLORER_BASE = 'https://build.avax.network/explorer/H3hnSLUCbiQaY92f34SyiUFCpfiHqm1HkGtig5BDBKKk3ZJYB';
 
-export const PAYMENT_PROCESSOR_NETWORK = {
+export const AVALANCHE_TESTNET_C_NETWORK = {
   chainId: 43113,
   chainName: 'Avalanche Fuji C-Chain',
   rpcUrls: ['https://api.avax-test.network/ext/bc/C/rpc'],
