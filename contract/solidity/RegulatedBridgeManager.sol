@@ -11,27 +11,31 @@ import "./IdentityRegistry.sol";
 import "./AEDStablecoin.sol";
 
 /**
- * @title IWarpMessengerBridge
- * @notice Interface for Avalanche Warp Messaging precompile
- * @dev Warp Messenger precompile address: 0x0200000000000000000000000000000000000005
+ * @title ITeleporterMessenger
+ * @notice Interface for Teleporter cross-chain messaging
  */
-interface IWarpMessengerBridge {
-    struct WarpMessage {
-        bytes32 sourceChainID;
-        address originSenderAddress;
-        bytes payload;
-    }
-
-    function getVerifiedWarpMessage(uint32 index) external view returns (WarpMessage memory message, bool valid);
+interface ITeleporterMessenger {
+    /**
+     * @notice Send a cross-chain Teleporter message
+     * @param destinationChainId Destination chain identifier
+     * @param destinationAddress Destination contract address
+     * @param payload The message payload to send
+     * @return messageId The unique identifier for the sent message
+     */
+    function sendCrossChainMessage(
+        bytes32 destinationChainId,
+        address destinationAddress,
+        bytes calldata payload
+    ) external payable returns (bytes32 messageId);
 }
 
 /**
  * @title RegulatedBridgeManager
  * @notice Cross-chain bridge manager for GulfStable L1 (UUPS Upgradeable)
- * @dev Receives Warp messages from C-Chain PaymentProcessor and executes regulated AED transfers
+ * @dev Receives Teleporter messages from C-Chain PaymentProcessor and executes regulated AED transfers
  *
  * Key Features:
- * - Integrates with Avalanche Warp Messaging precompile
+ * - Integrates with Teleporter messaging
  * - Validates source chain and sender authorization
  * - Enforces compliance checks via IdentityRegistry
  * - Prevents replay attacks with message tracking
@@ -47,19 +51,20 @@ contract RegulatedBridgeManager is
     using SafeERC20 for IERC20;
 
     // ============================================
-    // Avalanche Warp Messenger Precompile
+    // Teleporter Messenger
     // ============================================
 
-    /// @notice Warp Messenger precompile address
-    address public constant WARP_MESSENGER = 0x0200000000000000000000000000000000000005;
+    /// @notice Teleporter messenger contract address
+    ITeleporterMessenger public teleporterMessenger;
 
-    /// @notice Cross-chain payment payload structure (decoded from Warp message)
+    /// @notice Cross-chain payment payload structure (decoded from Teleporter message)
     struct CrossChainPayment {
-        bytes32 messageId;
         address recipient;
-        uint256 amount;
-        string paymentRef;
+        uint256 aedAmount;
+        bytes32 paymentRef;
+        uint256 sourceChainId;
         uint256 timestamp;
+        address sourceSender;
     }
 
     // ============================================
@@ -102,7 +107,7 @@ contract RegulatedBridgeManager is
         address indexed recipient,
         uint256 amount,
         bytes32 sourceChainId,
-        string paymentRef
+        bytes32 paymentRef
     );
 
     event CrossChainPaymentFailed(
@@ -131,6 +136,11 @@ contract RegulatedBridgeManager is
         address indexed newStablecoin
     );
 
+    event TeleporterMessengerUpdated(
+        address indexed oldMessenger,
+        address indexed newMessenger
+    );
+
     event MintingModeUpdated(
         bool useMinting
     );
@@ -146,9 +156,12 @@ contract RegulatedBridgeManager is
     // ============================================
 
     error NotRegulator();
-    error InvalidWarpMessage();
+    error TeleporterMessengerNotConfigured();
+    error UnauthorizedTeleporterMessenger(address sender);
     error UnauthorizedSourceChain(bytes32 chainId);
     error UnauthorizedSender(address sender, bytes32 chainId);
+    error SourceChainIdMismatch(uint256 payloadChainId, bytes32 sourceChainId);
+    error PayloadSenderMismatch(address payloadSender, address originSenderAddress);
     error MessageAlreadyProcessed(bytes32 messageId);
     error RecipientNotWhitelisted(address recipient);
     error RecipientFrozen(address recipient);
@@ -216,76 +229,89 @@ contract RegulatedBridgeManager is
     // ============================================
 
     /**
-     * @notice Receive and process a Warp message from another chain
-     * @param index The index of the verified Warp message
-     * @return success Whether the payment was successfully processed
+     * @notice Receive and process a Teleporter message from another chain
+     * @param sourceChainId The source chain identifier
+     * @param originSenderAddress The originating sender address on the source chain
+     * @param payload The encoded payment payload
      */
-    function receiveWarpMessage(uint32 index) external nonReentrant whenNotPaused returns (bool success) {
-        // Get verified message from Warp precompile
-        IWarpMessengerBridge warpMessenger = IWarpMessengerBridge(WARP_MESSENGER);
-        (IWarpMessengerBridge.WarpMessage memory message, bool valid) = warpMessenger.getVerifiedWarpMessage(index);
+    function receiveTeleporterMessage(
+        bytes32 sourceChainId,
+        address originSenderAddress,
+        bytes calldata payload
+    ) external nonReentrant whenNotPaused {
+        if (address(teleporterMessenger) == address(0)) {
+            revert TeleporterMessengerNotConfigured();
+        }
 
-        if (!valid) {
-            revert InvalidWarpMessage();
+        if (msg.sender != address(teleporterMessenger)) {
+            revert UnauthorizedTeleporterMessenger(msg.sender);
         }
 
         // Validate source chain authorization
-        if (!authorizedSourceChains[message.sourceChainID]) {
-            revert UnauthorizedSourceChain(message.sourceChainID);
+        if (!authorizedSourceChains[sourceChainId]) {
+            revert UnauthorizedSourceChain(sourceChainId);
         }
 
         // Validate sender is the authorized payment processor for this chain
-        address expectedProcessor = paymentProcessors[message.sourceChainID];
-        if (message.originSenderAddress != expectedProcessor) {
-            revert UnauthorizedSender(message.originSenderAddress, message.sourceChainID);
+        address expectedProcessor = paymentProcessors[sourceChainId];
+        if (originSenderAddress != expectedProcessor) {
+            revert UnauthorizedSender(originSenderAddress, sourceChainId);
         }
 
         // Decode the payment payload
-        CrossChainPayment memory payment = _decodePayload(message.payload);
+        CrossChainPayment memory payment = _decodePayload(payload);
+
+        if (bytes32(payment.sourceChainId) != sourceChainId) {
+            revert SourceChainIdMismatch(payment.sourceChainId, sourceChainId);
+        }
+
+        if (payment.sourceSender != originSenderAddress) {
+            revert PayloadSenderMismatch(payment.sourceSender, originSenderAddress);
+        }
+
+        bytes32 messageId = keccak256(abi.encode(sourceChainId, originSenderAddress, payload));
 
         // Check for replay attack
-        if (processedMessages[payment.messageId]) {
-            revert MessageAlreadyProcessed(payment.messageId);
+        if (processedMessages[messageId]) {
+            revert MessageAlreadyProcessed(messageId);
         }
 
         // Mark message as processed (before external calls)
-        processedMessages[payment.messageId] = true;
+        processedMessages[messageId] = true;
 
         // Validate recipient compliance
         (bool canReceive, string memory reason) = _canReceive(payment.recipient);
         if (!canReceive) {
             emit CrossChainPaymentFailed(
-                payment.messageId,
+                messageId,
                 payment.recipient,
                 reason
             );
-            return false;
+            return;
         }
 
         // Execute the transfer
-        bool transferred = _executeTransfer(payment.recipient, payment.amount);
+        bool transferred = _executeTransfer(payment.recipient, payment.aedAmount);
         if (!transferred) {
             emit CrossChainPaymentFailed(
-                payment.messageId,
+                messageId,
                 payment.recipient,
                 "Transfer execution failed"
             );
-            return false;
+            return;
         }
 
         // Update statistics
-        totalBridgedIn += payment.amount;
+        totalBridgedIn += payment.aedAmount;
         totalBridgeTransactions++;
 
         emit CrossChainPaymentReceived(
-            payment.messageId,
+            messageId,
             payment.recipient,
-            payment.amount,
-            message.sourceChainID,
+            payment.aedAmount,
+            sourceChainId,
             payment.paymentRef
         );
-
-        return true;
     }
 
     // ============================================
@@ -375,6 +401,17 @@ contract RegulatedBridgeManager is
         address oldStablecoin = address(aedStablecoin);
         aedStablecoin = AEDStablecoin(stablecoin);
         emit AEDStablecoinUpdated(oldStablecoin, stablecoin);
+    }
+
+    /**
+     * @notice Set the Teleporter messenger contract address
+     * @param messenger The Teleporter messenger contract address
+     */
+    function setTeleporterMessenger(address messenger) external onlyRegulator {
+        if (messenger == address(0)) revert ZeroAddress();
+        address oldMessenger = address(teleporterMessenger);
+        teleporterMessenger = ITeleporterMessenger(messenger);
+        emit TeleporterMessengerUpdated(oldMessenger, messenger);
     }
 
     /**
@@ -522,25 +559,27 @@ contract RegulatedBridgeManager is
     }
 
     /**
-     * @notice Decode the Warp message payload into a CrossChainPayment
+     * @notice Decode the Teleporter message payload into a CrossChainPayment
      * @param payload The encoded payload bytes
      * @return payment The decoded payment structure
      */
     function _decodePayload(bytes memory payload) internal pure returns (CrossChainPayment memory payment) {
         (
-            bytes32 messageId,
             address recipient,
-            uint256 amount,
-            string memory paymentRefStr,
-            uint256 timestamp
-        ) = abi.decode(payload, (bytes32, address, uint256, string, uint256));
+            uint256 aedAmount,
+            bytes32 paymentRef,
+            uint256 sourceChainId,
+            uint256 timestamp,
+            address sourceSender
+        ) = abi.decode(payload, (address, uint256, bytes32, uint256, uint256, address));
 
         payment = CrossChainPayment({
-            messageId: messageId,
             recipient: recipient,
-            amount: amount,
-            paymentRef: paymentRefStr,
-            timestamp: timestamp
+            aedAmount: aedAmount,
+            paymentRef: paymentRef,
+            sourceChainId: sourceChainId,
+            timestamp: timestamp,
+            sourceSender: sourceSender
         });
     }
 
@@ -559,5 +598,5 @@ contract RegulatedBridgeManager is
      * @dev Reserved storage space to allow for layout changes in future upgrades
      * @notice 50 slots reserved for future state variables
      */
-    uint256[50] private __gap;
+    uint256[49] private __gap;
 }
