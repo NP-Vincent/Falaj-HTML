@@ -13,3 +13,5 @@ This file records every deployment and upgrade of the deployed smart contracts. 
 | 12/28/2025 | RegulatedBridgeManager.sol | Falaj Testnet (Avalanche L1 Chain ID: 75417)| 0x5Df493383E20260A2F4B18B31dE927AAc997eF32 | 0x2dbB8E018A2B72220443a8D00463EB8CbAe7520f | Version 1 |
 | 12/28/2025 | DvPSettlement.sol | Falaj Testnet (Avalanche L1 Chain ID: 75417)| 0x99383F536F47961C3A1A427f8bbC89324Cc952D8 | 0x2B5F63A635BdBFe7Caabd0075375eB573312cAC6 | Version 1 |
 | 1/6/2026 | PaymentProcessor.sol | Avalanche Fuji Testnet (Chain ID: 43113)| 0x189c4B40C5d073231e8fcd65370F55B55f25321c | 0x062950461bb3c12a187846AcdeAD02bc4dd166D3 | Version 2 |
+| 1/6/2026 | RegulatedBridgeManager.sol | Falaj Testnet (Avalanche L1 Chain ID: 75417)| 0x5Df493383E20260A2F4B18B31dE927AAc997eF32 | 0xE2e74D47b2A573a6D156a73Aad6148F5Dc1F8763 | Version 2 |
+| 1/6/2026 | PaymentProcessor.sol | Avalanche Fuji Testnet (Chain ID: 43113)| 0x189c4B40C5d073231e8fcd65370F55B55f25321c | 0x67CEe293144b8d8f02A83C53E4d4CcA6D2552726 | Version 3 |
