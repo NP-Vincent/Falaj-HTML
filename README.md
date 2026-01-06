@@ -41,6 +41,10 @@ Then open:
 
 Each interface page includes a right-hand log panel with separate event and error streams. Use the Copy and Clear buttons to export or reset each log while testing contract flows.
 
+## Role bytes lookup
+
+Every contract page now includes a "Role Bytes" read action to fetch AccessControl role identifiers directly from the contract ABI. Use it to confirm the bytes32 value tied to each role before granting or checking permissions.
+
 ## IdentityRegistry interface
 
 The Identity Registry UI provides:

@@ -14,6 +14,7 @@ import {
   switchNetwork
 } from './wallet.js';
 import { initLogs, logEvent, logError } from './logs.js';
+import { fetchRoleValues } from './roles.js';
 
 const ethers = window.ethers;
 
@@ -74,6 +75,7 @@ function setActionButtonsEnabled(enabled) {
     'set-payment-processor-btn',
     'set-teleporter-messenger-btn',
     'summary-btn',
+    'roles-btn',
     'bridge-stats-btn',
     'can-receive-btn',
     'authorized-chain-btn',
@@ -316,6 +318,17 @@ async function handleSummary() {
   show(output.join('\n'));
 }
 
+async function handleRoles() {
+  const contract = await ensureBridgeManager();
+  const abi = await getBridgeManagerAbi();
+  const roles = await fetchRoleValues(contract, abi);
+  if (!roles.length) {
+    show('No role constants found in ABI.');
+    return;
+  }
+  show(roles.map((role) => `${role.name}: ${role.value}`).join('\n'));
+}
+
 async function handleBridgeStats() {
   const contract = await ensureBridgeManager();
   const stats = await contract.getBridgeStats();
@@ -386,6 +399,7 @@ function boot() {
   wireButton('set-payment-processor-btn', handleSetPaymentProcessor);
   wireButton('set-teleporter-messenger-btn', handleSetTeleporterMessenger);
   wireButton('summary-btn', handleSummary);
+  wireButton('roles-btn', handleRoles);
   wireButton('bridge-stats-btn', handleBridgeStats);
   wireButton('can-receive-btn', handleCanReceive);
   wireButton('authorized-chain-btn', handleAuthorizedChain);

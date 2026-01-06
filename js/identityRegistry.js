@@ -14,6 +14,7 @@ import {
   switchNetwork
 } from './wallet.js';
 import { initLogs, logEvent, logError } from './logs.js';
+import { fetchRoleValues } from './roles.js';
 
 const ethers = window.ethers;
 
@@ -82,6 +83,7 @@ function setActionButtonsEnabled(enabled) {
     'has-role-btn',
     'has-participant-role-btn',
     'participant-role-btn',
+    'roles-btn',
     'allowed-btn',
     'whitelisted-btn',
     'frozen-btn',
@@ -377,6 +379,17 @@ async function handleParticipantRole() {
   show(`Participant role: ${role}`);
 }
 
+async function handleRoles() {
+  const contract = await ensureIdentityRegistry();
+  const abi = await getIdentityRegistryAbi();
+  const roles = await fetchRoleValues(contract, abi);
+  if (!roles.length) {
+    show('No role constants found in ABI.');
+    return;
+  }
+  show(roles.map((role) => `${role.name}: ${role.value}`).join('\n'));
+}
+
 async function handleAllowedToTransact() {
   const contract = await ensureIdentityRegistry();
   const account = parseAddress(document.getElementById('allowed-account').value, 'Participant address');
@@ -449,6 +462,7 @@ function boot() {
   wireButton('has-role-btn', handleHasRole);
   wireButton('has-participant-role-btn', handleHasParticipantRole);
   wireButton('participant-role-btn', handleParticipantRole);
+  wireButton('roles-btn', handleRoles);
   wireButton('allowed-btn', handleAllowedToTransact);
   wireButton('whitelisted-btn', handleIsWhitelisted);
   wireButton('frozen-btn', handleIsFrozen);
