@@ -8,6 +8,16 @@ export const FALAJ_NETWORK = {
 
 export const EXPLORER_BASE = 'https://build.avax.network/explorer/H3hnSLUCbiQaY92f34SyiUFCpfiHqm1HkGtig5BDBKKk3ZJYB';
 
+export const PAYMENT_PROCESSOR_NETWORK = {
+  chainId: 43113,
+  chainName: 'Avalanche Fuji C-Chain',
+  rpcUrls: ['https://api.avax-test.network/ext/bc/C/rpc'],
+  nativeCurrency: { name: 'AVAX', symbol: 'AVAX', decimals: 18 },
+  blockExplorerUrls: ['https://subnets-test.avax.network/c-chain']
+};
+
+export const PAYMENT_PROCESSOR_EXPLORER_BASE = 'https://subnets-test.avax.network/c-chain';
+
 export const AED_STABLECOIN_ADDRESS = '0xa5be895EB6DD499b688AE4bD42Fd78500cE24b0F';
 export const AED_STABLECOIN_ABI_URL = 'contract/abi/AEDStablecoin.json';
 
@@ -26,7 +36,7 @@ export const VALIDATOR_STAKING_MANAGER_ABI_URL = 'contract/abi/ValidatorStakingM
 export const FEE_DISTRIBUTION_ADDRESS = '0xF83363525623b2d937f3133c188C0c3159724D23';
 export const FEE_DISTRIBUTION_ABI_URL = 'contract/abi/FeeDistribution.json';
 
-export const PAYMENT_PROCESSOR_ADDRESS = '0x0996C439a14BD8c7d94616daDdA736aDCf9929F2';
+export const PAYMENT_PROCESSOR_ADDRESS = '0x189c4B40C5d073231e8fcd65370F55B55f25321c';
 export const PAYMENT_PROCESSOR_ABI_URL = 'contract/abi/PaymentProcessor.json';
 
 export const REGULATED_BRIDGE_MANAGER_ADDRESS = '0x5Df493383E20260A2F4B18B31dE927AAc997eF32';
