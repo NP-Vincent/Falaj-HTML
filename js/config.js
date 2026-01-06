@@ -16,7 +16,7 @@ export const AVALANCHE_TESTNET_C_NETWORK = {
   blockExplorerUrls: ['https://subnets-test.avax.network/c-chain']
 };
 
-export const PAYMENT_PROCESSOR_EXPLORER_BASE = 'https://subnets-test.avax.network/c-chain';
+export const AVALANCHE_FUJI_C_CHAIN_EXPLORER_BASE = 'https://subnets-test.avax.network/c-chain';
 
 export const AED_STABLECOIN_ADDRESS = '0xa5be895EB6DD499b688AE4bD42Fd78500cE24b0F';
 export const AED_STABLECOIN_ABI_URL = 'contract/abi/AEDStablecoin.json';
