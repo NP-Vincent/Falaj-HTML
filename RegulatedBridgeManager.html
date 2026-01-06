@@ -75,13 +75,15 @@
       <button id="unpause-btn" disabled>Unpause</button>
     </div>
     <div class="action-row">
-      <strong>Receive Warp Message</strong>
-      <input id="warp-index" placeholder="Message index" />
-      <button id="receive-warp-btn" disabled>Receive</button>
+      <strong>Receive Teleporter Message</strong>
+      <input id="teleporter-source-chain-id" placeholder="Source chain ID (bytes32 or label)" />
+      <input id="teleporter-origin-sender" placeholder="Origin sender address" />
+      <input id="teleporter-payload" placeholder="Payload bytes (0x...)" />
+      <button id="receive-teleporter-btn" disabled>Receive</button>
     </div>
     <div class="action-row">
       <strong>Rescue Tokens</strong>
-      <input id="rescue-token" placeholder="Token address" />
+      <input id="rescue-token" placeholder="Token address or 'native'" />
       <input id="rescue-amount" placeholder="Amount (18 decimals)" />
       <button id="rescue-tokens-btn" disabled>Rescue</button>
     </div>
@@ -117,6 +119,11 @@
       <input id="payment-chain-id" placeholder="Chain ID (bytes32 or label)" />
       <input id="payment-processor-address" placeholder="Processor address" />
       <button id="set-payment-processor-btn" disabled>Set</button>
+    </div>
+    <div class="action-row">
+      <strong>Set Teleporter Messenger</strong>
+      <input id="teleporter-messenger" placeholder="Teleporter messenger address" />
+      <button id="set-teleporter-messenger-btn" disabled>Set</button>
     </div>
 
     <h5>Read Actions</h5>

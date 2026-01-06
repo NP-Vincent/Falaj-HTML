@@ -23,6 +23,7 @@ if (!ethers) {
 
 let paymentProcessorAbi = null;
 let paymentProcessor = null;
+const ERC20_METADATA_ABI = ['function decimals() view returns (uint8)'];
 
 function normalizeAbi(abiData) {
   if (Array.isArray(abiData)) {
@@ -72,6 +73,7 @@ function setActionButtonsEnabled(enabled) {
     'set-destination-chain-btn',
     'set-exchange-rate-btn',
     'set-protocol-fee-btn',
+    'set-teleporter-messenger-btn',
     'withdraw-fees-btn',
     'grant-role-btn',
     'revoke-role-btn',
@@ -103,6 +105,18 @@ function parseAddress(value, label) {
   return address;
 }
 
+function parseTokenAddress(value, label) {
+  const sanitized = requireValue(value, label);
+  const lowered = sanitized.toLowerCase();
+  if (lowered === 'native' || lowered === 'avax' || lowered === '0x0') {
+    return ethers.ZeroAddress;
+  }
+  if (!ethers.isAddress(sanitized)) {
+    throw new Error(`${label} must be a valid address or 'native'.`);
+  }
+  return sanitized;
+}
+
 function parseRole(value) {
   const sanitized = requireValue(value, 'Role');
   if (sanitized.startsWith('0x') && sanitized.length === 66) {
@@ -131,9 +145,9 @@ function parseUint(value, label, allowZero = true) {
   return parsed;
 }
 
-function parseTokenAmount(value, label) {
+function parseTokenAmountWithDecimals(value, label, decimals) {
   const sanitized = requireValue(value, label);
-  const amount = ethers.parseUnits(sanitized, 18);
+  const amount = ethers.parseUnits(sanitized, decimals);
   if (amount <= 0n) {
     throw new Error(`${label} must be greater than 0.`);
   }
@@ -160,6 +174,21 @@ async function ensurePaymentProcessor() {
   const abi = await getPaymentProcessorAbi();
   paymentProcessor = new ethers.Contract(PAYMENT_PROCESSOR_ADDRESS, abi, signer);
   return paymentProcessor;
+}
+
+async function getTokenDecimals(tokenAddress) {
+  if (tokenAddress === ethers.ZeroAddress) {
+    return 18;
+  }
+  const signer = getSigner();
+  const provider = signer?.provider ?? signer;
+  const token = new ethers.Contract(tokenAddress, ERC20_METADATA_ABI, provider);
+  try {
+    const decimals = await token.decimals();
+    return Number(decimals);
+  } catch (err) {
+    return 18;
+  }
 }
 
 async function handleConnect() {
@@ -205,7 +234,12 @@ async function handleDepositAVAX() {
 async function handleDepositStablecoin() {
   const contract = await ensurePaymentProcessor();
   const token = parseAddress(document.getElementById('deposit-stablecoin-token').value, 'Token');
-  const amount = parseTokenAmount(document.getElementById('deposit-stablecoin-amount').value, 'Token amount');
+  const tokenDecimals = await getTokenDecimals(token);
+  const amount = parseTokenAmountWithDecimals(
+    document.getElementById('deposit-stablecoin-amount').value,
+    'Token amount',
+    tokenDecimals
+  );
   const recipient = parseAddress(document.getElementById('deposit-stablecoin-recipient').value, 'Recipient');
   const paymentRef = requireValue(document.getElementById('deposit-stablecoin-ref').value, 'Payment reference');
   const tx = await contract.depositStablecoin(token, amount, recipient, paymentRef);
@@ -218,7 +252,12 @@ async function handleEmergencyWithdraw() {
   const contract = await ensurePaymentProcessor();
   const token = parseAddress(document.getElementById('emergency-token').value, 'Token');
   const to = parseAddress(document.getElementById('emergency-recipient').value, 'Recipient');
-  const amount = parseTokenAmount(document.getElementById('emergency-amount').value, 'Token amount');
+  const tokenDecimals = await getTokenDecimals(token);
+  const amount = parseTokenAmountWithDecimals(
+    document.getElementById('emergency-amount').value,
+    'Token amount',
+    tokenDecimals
+  );
   const tx = await contract.emergencyWithdrawToken(token, to, amount);
   show(`Emergency withdraw submitted: ${tx.hash}`);
   await tx.wait();
@@ -262,7 +301,7 @@ async function handleSetDestinationChain() {
 
 async function handleSetExchangeRate() {
   const contract = await ensurePaymentProcessor();
-  const token = parseAddress(document.getElementById('exchange-rate-token').value, 'Token');
+  const token = parseTokenAddress(document.getElementById('exchange-rate-token').value, 'Token');
   const rate = parseUint(document.getElementById('exchange-rate-value').value, 'Rate to AED', false);
   const tx = await contract.setExchangeRate(token, rate);
   show(`Exchange rate submitted: ${tx.hash}`);
@@ -286,6 +325,15 @@ async function handleWithdrawFees() {
   show(`Withdraw fees submitted: ${tx.hash}`);
   await tx.wait();
   show(`Withdraw fees confirmed: ${tx.hash}`);
+}
+
+async function handleSetTeleporterMessenger() {
+  const contract = await ensurePaymentProcessor();
+  const messenger = parseAddress(document.getElementById('teleporter-messenger').value, 'Teleporter messenger');
+  const tx = await contract.setTeleporterMessenger(messenger);
+  show(`Teleporter messenger update submitted: ${tx.hash}`);
+  await tx.wait();
+  show(`Teleporter messenger update confirmed: ${tx.hash}`);
 }
 
 async function handleGrantRole() {
@@ -326,21 +374,24 @@ async function handleSummary() {
     totalAedValueProcessed,
     totalPaymentsProcessed,
     defaultDestinationChain,
-    paused
+    paused,
+    teleporterMessenger
   ] = await Promise.all([
     contract.accumulatedFees(),
     contract.protocolFeeBps(),
     contract.totalAedValueProcessed(),
     contract.totalPaymentsProcessed(),
     contract.defaultDestinationChain(),
-    contract.paused()
+    contract.paused(),
+    contract.teleporterMessenger()
   ]);
   const output = [
     `Accumulated fees: ${ethers.formatEther(accumulatedFees)} AVAX`,
     `Protocol fee (bps): ${protocolFeeBps}`,
-    `Total AED value processed: ${ethers.formatEther(totalAedValueProcessed)} AED`,
+    `Total AED value processed: ${ethers.formatUnits(totalAedValueProcessed, 2)} AED`,
     `Total payments processed: ${totalPaymentsProcessed}`,
     `Default destination chain: ${defaultDestinationChain}`,
+    `Teleporter messenger: ${teleporterMessenger}`,
     `Paused: ${paused}`
   ];
   show(output.join('\n'));
@@ -348,7 +399,7 @@ async function handleSummary() {
 
 async function handleExchangeRate() {
   const contract = await ensurePaymentProcessor();
-  const token = parseAddress(document.getElementById('exchange-rate-query-token').value, 'Token');
+  const token = parseTokenAddress(document.getElementById('exchange-rate-query-token').value, 'Token');
   const rate = await contract.getExchangeRate(token);
   show(`Exchange rate: ${rate}`);
 }
@@ -362,17 +413,22 @@ async function handleDestinationManager() {
 
 async function handleTokenSupported() {
   const contract = await ensurePaymentProcessor();
-  const token = parseAddress(document.getElementById('token-supported-token').value, 'Token');
+  const token = parseTokenAddress(document.getElementById('token-supported-token').value, 'Token');
   const supported = await contract.isTokenSupported(token);
   show(`Token supported: ${supported}`);
 }
 
 async function handleCalculateAed() {
   const contract = await ensurePaymentProcessor();
-  const token = parseAddress(document.getElementById('calculate-aed-token').value, 'Token');
-  const amount = parseTokenAmount(document.getElementById('calculate-aed-amount').value, 'Token amount');
+  const token = parseTokenAddress(document.getElementById('calculate-aed-token').value, 'Token');
+  const tokenDecimals = await getTokenDecimals(token);
+  const amount = parseTokenAmountWithDecimals(
+    document.getElementById('calculate-aed-amount').value,
+    'Token amount',
+    tokenDecimals
+  );
   const aedAmount = await contract.calculateAedAmount(token, amount);
-  show(`AED amount: ${ethers.formatEther(aedAmount)} AED`);
+  show(`AED amount: ${ethers.formatUnits(aedAmount, 2)} AED`);
 }
 
 function wireButton(id, handler) {
@@ -405,6 +461,7 @@ function boot() {
   wireButton('set-destination-chain-btn', handleSetDestinationChain);
   wireButton('set-exchange-rate-btn', handleSetExchangeRate);
   wireButton('set-protocol-fee-btn', handleSetProtocolFee);
+  wireButton('set-teleporter-messenger-btn', handleSetTeleporterMessenger);
   wireButton('withdraw-fees-btn', handleWithdrawFees);
   wireButton('grant-role-btn', handleGrantRole);
   wireButton('revoke-role-btn', handleRevokeRole);
