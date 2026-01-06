@@ -312,9 +312,9 @@
         },
         {
           "indexed": false,
-          "internalType": "string",
+          "internalType": "bytes32",
           "name": "paymentRef",
-          "type": "string"
+          "type": "bytes32"
         }
       ],
       "name": "CrossChainPaymentReceived",
@@ -384,25 +384,6 @@
       ],
       "name": "PaymentProcessorUpdated",
       "type": "event"
-    },
-    {
-      "inputs": [
-        {
-          "internalType": "uint32",
-          "name": "index",
-          "type": "uint32"
-        }
-      ],
-      "name": "receiveWarpMessage",
-      "outputs": [
-        {
-          "internalType": "bool",
-          "name": "success",
-          "type": "bool"
-        }
-      ],
-      "stateMutability": "nonpayable",
-      "type": "function"
     },
     {
       "inputs": [
@@ -881,6 +862,74 @@
       ],
       "stateMutability": "view",
       "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "bytes32",
+          "name": "sourceChainId",
+          "type": "bytes32"
+        },
+        {
+          "internalType": "address",
+          "name": "originSenderAddress",
+          "type": "address"
+        },
+        {
+          "internalType": "bytes",
+          "name": "payload",
+          "type": "bytes"
+        }
+      ],
+      "name": "receiveTeleporterMessage",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "messenger",
+          "type": "address"
+        }
+      ],
+      "name": "setTeleporterMessenger",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "teleporterMessenger",
+      "outputs": [
+        {
+          "internalType": "contract ITeleporterMessenger",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "oldMessenger",
+          "type": "address"
+        },
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "newMessenger",
+          "type": "address"
+        }
+      ],
+      "name": "TeleporterMessengerUpdated",
+      "type": "event"
     }
   ],
   "filePath": "default_workspace/Falaj/RegulatedBridgeManager.sol",
