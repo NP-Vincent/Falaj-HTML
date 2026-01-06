@@ -10,34 +10,33 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
 /**
- * @title IWarpMessenger
- * @notice Interface for Avalanche Warp Messaging precompile
- * @dev Warp Messenger precompile address: 0x0200000000000000000000000000000000000005
+ * @title ITeleporterMessenger
+ * @notice Interface for Teleporter cross-chain messaging
  */
-interface IWarpMessenger {
+interface ITeleporterMessenger {
     /**
-     * @notice Send a cross-chain Warp message
+     * @notice Send a cross-chain Teleporter message
+     * @param destinationChainId Destination chain identifier
+     * @param destinationAddress Destination contract address
      * @param payload The message payload to send
      * @return messageId The unique identifier for the sent message
      */
-    function sendWarpMessage(bytes calldata payload) external returns (bytes32 messageId);
-
-    /**
-     * @notice Get the blockchain ID of this chain
-     * @return blockchainID The 32-byte blockchain identifier
-     */
-    function getBlockchainID() external view returns (bytes32 blockchainID);
+    function sendCrossChainMessage(
+        bytes32 destinationChainId,
+        address destinationAddress,
+        bytes calldata payload
+    ) external payable returns (bytes32 messageId);
 }
 
 /**
  * @title PaymentProcessor
  * @notice Cross-chain payment processor for GulfStable L1 (UUPS Upgradeable)
- * @dev Accepts deposits on Avalanche C-Chain and sends Warp messages to GulfStable L1
+ * @dev Accepts deposits on Avalanche C-Chain and sends Teleporter messages to GulfStable L1
  *
  * Key Features:
  * - Accept AVAX deposits and convert to AED equivalent
  * - Accept stablecoin deposits (USDC, USDT, etc.) and convert to AED
- * - Send cross-chain Warp messages to GulfStable L1 BridgeManager
+ * - Send cross-chain Teleporter messages to GulfStable L1 BridgeManager
  * - Admin-configurable exchange rates and destination chains
  * - UUPS upgradeable pattern for future improvements
  */
@@ -53,9 +52,6 @@ contract PaymentProcessor is
     // ============================================
     // Constants
     // ============================================
-
-    /// @notice Warp Messenger precompile address
-    address public constant WARP_MESSENGER = 0x0200000000000000000000000000000000000005;
 
     /// @notice Native token identifier for exchange rates
     address public constant NATIVE_TOKEN = address(0);
@@ -94,6 +90,9 @@ contract PaymentProcessor is
 
     /// @notice Total AED value processed
     uint256 public totalAedValueProcessed;
+
+    /// @notice Teleporter messenger address
+    address public teleporterMessenger;
 
     // ============================================
     // Structs
@@ -167,6 +166,7 @@ contract PaymentProcessor is
     error InvalidFeeBps();
     error NoFeesToWithdraw();
     error ReferenceEmpty();
+    error TeleporterMessengerNotConfigured();
 
     // ============================================
     // Constructor (Disables Initializers)
@@ -184,9 +184,11 @@ contract PaymentProcessor is
     /**
      * @notice Initialize the PaymentProcessor contract
      * @param admin Admin address with DEFAULT_ADMIN_ROLE and ADMIN_ROLE
+     * @param teleporterMessengerAddress Teleporter messenger contract address
      */
-    function initialize(address admin) public initializer {
+    function initialize(address admin, address teleporterMessengerAddress) public initializer {
         if (admin == address(0)) revert ZeroAddress();
+        if (teleporterMessengerAddress == address(0)) revert ZeroAddress();
 
         __AccessControl_init();
         __Pausable_init();
@@ -195,6 +197,8 @@ contract PaymentProcessor is
 
         _grantRole(DEFAULT_ADMIN_ROLE, admin);
         _grantRole(ADMIN_ROLE, admin);
+
+        teleporterMessenger = teleporterMessengerAddress;
     }
 
     // ============================================
@@ -369,6 +373,18 @@ contract PaymentProcessor is
     }
 
     /**
+     * @notice Set the Teleporter messenger address
+     * @param teleporterMessengerAddress Teleporter messenger contract address
+     */
+    function setTeleporterMessenger(
+        address teleporterMessengerAddress
+    ) external onlyRole(ADMIN_ROLE) {
+        if (teleporterMessengerAddress == address(0)) revert ZeroAddress();
+
+        teleporterMessenger = teleporterMessengerAddress;
+    }
+
+    /**
      * @notice Withdraw accumulated protocol fees
      * @param to Recipient address for fees
      */
@@ -522,11 +538,11 @@ contract PaymentProcessor is
     }
 
     /**
-     * @notice Send cross-chain payment via Warp messaging
+     * @notice Send cross-chain payment via Teleporter messaging
      * @param recipient Recipient on destination chain
      * @param aedAmount AED amount (2 decimals)
      * @param paymentRef Payment reference
-     * @return messageId Warp message ID
+     * @return messageId Teleporter message ID
      */
     function _sendCrossChainPayment(
         address recipient,
@@ -536,6 +552,15 @@ contract PaymentProcessor is
         // Validate destination is configured
         if (defaultDestinationChain == bytes32(0)) {
             revert DestinationNotConfigured(bytes32(0));
+        }
+
+        address destinationBridgeManager = destinationBridgeManagers[defaultDestinationChain];
+        if (destinationBridgeManager == address(0)) {
+            revert DestinationNotConfigured(defaultDestinationChain);
+        }
+
+        if (teleporterMessenger == address(0)) {
+            revert TeleporterMessengerNotConfigured();
         }
 
         // Create payment payload
@@ -551,9 +576,13 @@ contract PaymentProcessor is
         // Encode payload
         bytes memory payload = abi.encode(payment);
 
-        // Send via Warp Messenger precompile
-        IWarpMessenger warpMessenger = IWarpMessenger(WARP_MESSENGER);
-        messageId = warpMessenger.sendWarpMessage(payload);
+        // Send via Teleporter messenger
+        ITeleporterMessenger teleporter = ITeleporterMessenger(teleporterMessenger);
+        messageId = teleporter.sendCrossChainMessage(
+            defaultDestinationChain,
+            destinationBridgeManager,
+            payload
+        );
 
         return messageId;
     }
@@ -575,7 +604,7 @@ contract PaymentProcessor is
      * @dev Reserved storage space for future upgrades
      * This allows adding new state variables without shifting storage layout
      */
-    uint256[50] private __gap;
+    uint256[49] private __gap;
 }
 
 /**
