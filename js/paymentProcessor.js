@@ -1,8 +1,8 @@
 import {
-  EXPLORER_BASE,
-  FALAJ_NETWORK,
   PAYMENT_PROCESSOR_ABI_URL,
-  PAYMENT_PROCESSOR_ADDRESS
+  PAYMENT_PROCESSOR_ADDRESS,
+  PAYMENT_PROCESSOR_EXPLORER_BASE,
+  PAYMENT_PROCESSOR_NETWORK
 } from './config.js';
 import {
   connectWallet,
@@ -165,9 +165,9 @@ async function ensurePaymentProcessor() {
 async function handleConnect() {
   await connectWallet();
   try {
-    await ensureCorrectNetwork(FALAJ_NETWORK);
+    await ensureCorrectNetwork(PAYMENT_PROCESSOR_NETWORK);
   } catch (err) {
-    await switchNetwork(FALAJ_NETWORK);
+    await switchNetwork(PAYMENT_PROCESSOR_NETWORK);
   }
   await ensurePaymentProcessor();
   document.getElementById('connect-btn').style.display = 'none';
@@ -187,7 +187,7 @@ function handleDisconnect() {
 
 function renderContractAddress() {
   const target = document.getElementById('contract-address');
-  const explorerLink = `${EXPLORER_BASE}/address/${PAYMENT_PROCESSOR_ADDRESS}`;
+  const explorerLink = `${PAYMENT_PROCESSOR_EXPLORER_BASE}/address/${PAYMENT_PROCESSOR_ADDRESS}`;
   target.innerHTML = `Contract: <a href="${explorerLink}" target="_blank">${PAYMENT_PROCESSOR_ADDRESS}</a>`;
 }
 
