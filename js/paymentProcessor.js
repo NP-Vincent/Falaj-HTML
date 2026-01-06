@@ -1,8 +1,8 @@
 import {
   AVALANCHE_TESTNET_C_NETWORK,
+  AVALANCHE_FUJI_C_CHAIN_EXPLORER_BASE,
   PAYMENT_PROCESSOR_ABI_URL,
-  PAYMENT_PROCESSOR_ADDRESS,
-  PAYMENT_PROCESSOR_EXPLORER_BASE
+  PAYMENT_PROCESSOR_ADDRESS
 } from './config.js';
 import {
   connectWallet,
@@ -187,7 +187,7 @@ function handleDisconnect() {
 
 function renderContractAddress() {
   const target = document.getElementById('contract-address');
-  const explorerLink = `${PAYMENT_PROCESSOR_EXPLORER_BASE}/address/${PAYMENT_PROCESSOR_ADDRESS}`;
+  const explorerLink = `${AVALANCHE_FUJI_C_CHAIN_EXPLORER_BASE}/address/${PAYMENT_PROCESSOR_ADDRESS}`;
   target.innerHTML = `Contract: <a href="${explorerLink}" target="_blank">${PAYMENT_PROCESSOR_ADDRESS}</a>`;
 }
 
