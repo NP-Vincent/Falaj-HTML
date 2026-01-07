@@ -79,6 +79,8 @@ function setActionButtonsEnabled(enabled) {
     'set-exchange-rate-btn',
     'set-protocol-fee-btn',
     'set-teleporter-messenger-btn',
+    'set-teleporter-gas-btn',
+    'set-teleporter-relayers-btn',
     'withdraw-fees-btn',
     'grant-role-btn',
     'revoke-role-btn',
@@ -87,6 +89,8 @@ function setActionButtonsEnabled(enabled) {
     'roles-btn',
     'exchange-rate-btn',
     'destination-manager-btn',
+    'teleporter-gas-btn',
+    'teleporter-relayers-btn',
     'token-supported-btn',
     'token-decimals-btn',
     'calculate-aed-btn'
@@ -138,6 +142,22 @@ function parseBytes32(value, label) {
     return sanitized;
   }
   return ethers.id(sanitized);
+}
+
+function parseAddressList(value, label) {
+  const sanitized = requireValue(value, label);
+  const addresses = sanitized
+    .split(',')
+    .map((entry) => entry.trim())
+    .filter(Boolean);
+  if (!addresses.length) {
+    throw new Error(`${label} is required.`);
+  }
+  const invalid = addresses.find((address) => !ethers.isAddress(address));
+  if (invalid) {
+    throw new Error(`${label} contains an invalid address: ${invalid}`);
+  }
+  return addresses;
 }
 
 function parseUint(value, label, allowZero = true) {
@@ -374,6 +394,33 @@ async function handleSetTeleporterMessenger() {
   show(`Teleporter messenger update confirmed: ${tx.hash}`);
 }
 
+async function handleSetTeleporterGasConfig() {
+  const contract = await ensurePaymentProcessor();
+  const chainId = parseBytes32(document.getElementById('teleporter-gas-chain-id').value, 'Chain ID');
+  const gasLimit = parseUint(document.getElementById('teleporter-gas-limit').value, 'Required gas limit', false);
+  const relayerFee = parseUint(document.getElementById('teleporter-relayer-fee').value, 'Relayer fee', true);
+  const tx = await contract.setTeleporterGasConfig(chainId, gasLimit, relayerFee);
+  show(`Teleporter gas config submitted: ${tx.hash}`);
+  await tx.wait();
+  show(`Teleporter gas config confirmed: ${tx.hash}`);
+}
+
+async function handleSetTeleporterAllowedRelayers() {
+  const contract = await ensurePaymentProcessor();
+  const chainId = parseBytes32(
+    document.getElementById('teleporter-relayer-chain-id').value,
+    'Chain ID'
+  );
+  const relayers = parseAddressList(
+    document.getElementById('teleporter-relayer-addresses').value,
+    'Relayer addresses'
+  );
+  const tx = await contract.setTeleporterAllowedRelayers(chainId, relayers);
+  show(`Teleporter relayers update submitted: ${tx.hash}`);
+  await tx.wait();
+  show(`Teleporter relayers update confirmed: ${tx.hash}`);
+}
+
 async function handleGrantRole() {
   const contract = await ensurePaymentProcessor();
   const role = parseRole(document.getElementById('grant-role-value').value);
@@ -460,6 +507,24 @@ async function handleDestinationManager() {
   show(`Bridge manager: ${manager}`);
 }
 
+async function handleTeleporterGasConfig() {
+  const contract = await ensurePaymentProcessor();
+  const chainId = parseBytes32(document.getElementById('teleporter-gas-query-id').value, 'Chain ID');
+  const [requiredGasLimit, relayerFee] = await Promise.all([
+    contract.teleporterRequiredGasLimit(chainId),
+    contract.teleporterRelayerFee(chainId)
+  ]);
+  show(`Required gas limit: ${requiredGasLimit}\nRelayer fee: ${relayerFee}`);
+}
+
+async function handleTeleporterAllowedRelayers() {
+  const contract = await ensurePaymentProcessor();
+  const chainId = parseBytes32(document.getElementById('teleporter-relayer-query-id').value, 'Chain ID');
+  const relayers = await contract.getTeleporterAllowedRelayers(chainId);
+  const output = relayers.length ? relayers.join('\n') : 'No relayers configured.';
+  show(`Allowed relayers:\n${output}`);
+}
+
 async function handleTokenSupported() {
   const contract = await ensurePaymentProcessor();
   const token = parseTokenAddress(document.getElementById('token-supported-token').value, 'Token');
@@ -526,6 +591,8 @@ function boot() {
   wireButton('set-exchange-rate-btn', handleSetExchangeRate);
   wireButton('set-protocol-fee-btn', handleSetProtocolFee);
   wireButton('set-teleporter-messenger-btn', handleSetTeleporterMessenger);
+  wireButton('set-teleporter-gas-btn', handleSetTeleporterGasConfig);
+  wireButton('set-teleporter-relayers-btn', handleSetTeleporterAllowedRelayers);
   wireButton('withdraw-fees-btn', handleWithdrawFees);
   wireButton('grant-role-btn', handleGrantRole);
   wireButton('revoke-role-btn', handleRevokeRole);
@@ -534,6 +601,8 @@ function boot() {
   wireButton('roles-btn', handleRoles);
   wireButton('exchange-rate-btn', handleExchangeRate);
   wireButton('destination-manager-btn', handleDestinationManager);
+  wireButton('teleporter-gas-btn', handleTeleporterGasConfig);
+  wireButton('teleporter-relayers-btn', handleTeleporterAllowedRelayers);
   wireButton('token-supported-btn', handleTokenSupported);
   wireButton('token-decimals-btn', handleTokenDecimals);
   wireButton('calculate-aed-btn', handleCalculateAed);
