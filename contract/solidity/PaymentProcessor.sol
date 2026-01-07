@@ -635,15 +635,14 @@ contract PaymentProcessor is
 
         // Send via Teleporter messenger
         ITeleporterMessenger teleporter = ITeleporterMessenger(teleporterMessenger);
-        ITeleporterMessenger.TeleporterMessageInput memory messageInput = ITeleporterMessenger
-            .TeleporterMessageInput({
-                destinationChainId: defaultDestinationChain,
-                destinationAddress: destinationBridgeManager,
-                message: payload,
-                requiredGasLimit: requiredGasLimit,
-                fee: relayerFee,
-                allowedRelayerAddresses: allowedRelayers
-            });
+        TeleporterMessageInput memory messageInput = TeleporterMessageInput({
+            destinationBlockchainID: defaultDestinationChain,
+            destinationAddress: destinationBridgeManager,
+            feeInfo: TeleporterFeeInfo({feeTokenAddress: address(0), amount: relayerFee}),
+            requiredGasLimit: requiredGasLimit,
+            allowedRelayerAddresses: allowedRelayers,
+            message: payload
+        });
 
         messageId = teleporter.sendCrossChainMessage{value: relayerFee}(messageInput);
 
