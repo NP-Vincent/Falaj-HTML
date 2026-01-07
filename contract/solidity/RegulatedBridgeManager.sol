@@ -7,6 +7,7 @@ import "@openzeppelin/contracts-upgradeable/utils/PausableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/ReentrancyGuardUpgradeable.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import "@teleporter/ITeleporterReceiver.sol";
 import "./IdentityRegistry.sol";
 import "./AEDStablecoin.sol";
 
@@ -51,7 +52,8 @@ contract RegulatedBridgeManager is
     Initializable,
     UUPSUpgradeable,
     PausableUpgradeable,
-    ReentrancyGuardUpgradeable
+    ReentrancyGuardUpgradeable,
+    ITeleporterReceiver
 {
     using SafeERC20 for IERC20;
 
@@ -237,13 +239,13 @@ contract RegulatedBridgeManager is
      * @notice Receive and process a Teleporter message from another chain
      * @param sourceChainId The source chain identifier
      * @param originSenderAddress The originating sender address on the source chain
-     * @param payload The encoded payment payload
+     * @param message The encoded payment payload
      */
     function receiveTeleporterMessage(
         bytes32 sourceChainId,
         address originSenderAddress,
-        bytes calldata payload
-    ) external nonReentrant whenNotPaused {
+        bytes calldata message
+    ) external override nonReentrant whenNotPaused {
         if (address(teleporterMessenger) == address(0)) {
             revert TeleporterMessengerNotConfigured();
         }
@@ -264,7 +266,7 @@ contract RegulatedBridgeManager is
         }
 
         // Decode the payment payload
-        CrossChainPayment memory payment = _decodePayload(payload);
+        CrossChainPayment memory payment = _decodePayload(message);
 
         if (bytes32(payment.sourceChainId) != sourceChainId) {
             revert SourceChainIdMismatch(payment.sourceChainId, sourceChainId);
@@ -274,7 +276,7 @@ contract RegulatedBridgeManager is
             revert PayloadSenderMismatch(payment.sourceSender, originSenderAddress);
         }
 
-        bytes32 messageId = keccak256(abi.encode(sourceChainId, originSenderAddress, payload));
+        bytes32 messageId = keccak256(abi.encode(sourceChainId, originSenderAddress, message));
 
         // Check for replay attack
         if (processedMessages[messageId]) {
