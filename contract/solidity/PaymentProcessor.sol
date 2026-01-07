@@ -14,17 +14,22 @@ import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
  * @notice Interface for Teleporter cross-chain messaging
  */
 interface ITeleporterMessenger {
+    struct TeleporterMessageInput {
+        bytes32 destinationChainId;
+        address destinationAddress;
+        bytes message;
+        uint256 requiredGasLimit;
+        uint256 fee;
+        address[] allowedRelayerAddresses;
+    }
+
     /**
      * @notice Send a cross-chain Teleporter message
-     * @param destinationChainId Destination chain identifier
-     * @param destinationAddress Destination contract address
-     * @param payload The message payload to send
+     * @param messageInput Message input parameters for the Teleporter message
      * @return messageId The unique identifier for the sent message
      */
     function sendCrossChainMessage(
-        bytes32 destinationChainId,
-        address destinationAddress,
-        bytes calldata payload
+        TeleporterMessageInput calldata messageInput
     ) external payable returns (bytes32 messageId);
 }
 
@@ -94,6 +99,15 @@ contract PaymentProcessor is
     /// @notice Teleporter messenger address
     address public teleporterMessenger;
 
+    /// @notice Teleporter gas limit per destination chain
+    mapping(bytes32 => uint256) public teleporterRequiredGasLimit;
+
+    /// @notice Teleporter relayer fee per destination chain
+    mapping(bytes32 => uint256) public teleporterRelayerFee;
+
+    /// @notice Teleporter allowed relayers per destination chain
+    mapping(bytes32 => address[]) private teleporterAllowedRelayers;
+
     // ============================================
     // Structs
     // ============================================
@@ -153,6 +167,17 @@ contract PaymentProcessor is
         uint256 amount
     );
 
+    event TeleporterGasConfigUpdated(
+        bytes32 indexed chainId,
+        uint256 requiredGasLimit,
+        uint256 relayerFee
+    );
+
+    event TeleporterAllowedRelayersUpdated(
+        bytes32 indexed chainId,
+        address[] allowedRelayerAddresses
+    );
+
     // ============================================
     // Errors
     // ============================================
@@ -167,6 +192,7 @@ contract PaymentProcessor is
     error NoFeesToWithdraw();
     error ReferenceEmpty();
     error TeleporterMessengerNotConfigured();
+    error TeleporterGasLimitNotSet(bytes32 chainId);
 
     // ============================================
     // Constructor (Disables Initializers)
@@ -385,6 +411,42 @@ contract PaymentProcessor is
     }
 
     /**
+     * @notice Set Teleporter gas configuration for a destination chain
+     * @param chainId Destination chain identifier
+     * @param requiredGasLimit Required gas limit on destination
+     * @param relayerFee Fee paid to the relayer
+     */
+    function setTeleporterGasConfig(
+        bytes32 chainId,
+        uint256 requiredGasLimit,
+        uint256 relayerFee
+    ) external onlyRole(ADMIN_ROLE) {
+        if (requiredGasLimit == 0) revert ZeroAmount();
+
+        teleporterRequiredGasLimit[chainId] = requiredGasLimit;
+        teleporterRelayerFee[chainId] = relayerFee;
+
+        emit TeleporterGasConfigUpdated(chainId, requiredGasLimit, relayerFee);
+    }
+
+    /**
+     * @notice Set Teleporter allowed relayers for a destination chain
+     * @param chainId Destination chain identifier
+     * @param allowedRelayers Allowed relayer addresses
+     */
+    function setTeleporterAllowedRelayers(
+        bytes32 chainId,
+        address[] calldata allowedRelayers
+    ) external onlyRole(ADMIN_ROLE) {
+        delete teleporterAllowedRelayers[chainId];
+        for (uint256 i = 0; i < allowedRelayers.length; i++) {
+            teleporterAllowedRelayers[chainId].push(allowedRelayers[i]);
+        }
+
+        emit TeleporterAllowedRelayersUpdated(chainId, allowedRelayers);
+    }
+
+    /**
      * @notice Withdraw accumulated protocol fees
      * @param to Recipient address for fees
      */
@@ -458,6 +520,17 @@ contract PaymentProcessor is
         bytes32 chainId
     ) external view returns (address bridgeManager) {
         return destinationBridgeManagers[chainId];
+    }
+
+    /**
+     * @notice Get Teleporter allowed relayers for a destination chain
+     * @param chainId Destination chain identifier
+     * @return allowedRelayers Allowed relayer addresses
+     */
+    function getTeleporterAllowedRelayers(
+        bytes32 chainId
+    ) external view returns (address[] memory allowedRelayers) {
+        return teleporterAllowedRelayers[chainId];
     }
 
     /**
@@ -563,6 +636,13 @@ contract PaymentProcessor is
             revert TeleporterMessengerNotConfigured();
         }
 
+        uint256 requiredGasLimit = teleporterRequiredGasLimit[defaultDestinationChain];
+        if (requiredGasLimit == 0) {
+            revert TeleporterGasLimitNotSet(defaultDestinationChain);
+        }
+        uint256 relayerFee = teleporterRelayerFee[defaultDestinationChain];
+        address[] memory allowedRelayers = teleporterAllowedRelayers[defaultDestinationChain];
+
         // Create payment payload
         CrossChainPayment memory payment = CrossChainPayment({
             recipient: recipient,
@@ -578,11 +658,17 @@ contract PaymentProcessor is
 
         // Send via Teleporter messenger
         ITeleporterMessenger teleporter = ITeleporterMessenger(teleporterMessenger);
-        messageId = teleporter.sendCrossChainMessage(
-            defaultDestinationChain,
-            destinationBridgeManager,
-            payload
-        );
+        ITeleporterMessenger.TeleporterMessageInput memory messageInput = ITeleporterMessenger
+            .TeleporterMessageInput({
+                destinationChainId: defaultDestinationChain,
+                destinationAddress: destinationBridgeManager,
+                message: payload,
+                requiredGasLimit: requiredGasLimit,
+                fee: relayerFee,
+                allowedRelayerAddresses: allowedRelayers
+            });
+
+        messageId = teleporter.sendCrossChainMessage{value: relayerFee}(messageInput);
 
         return messageId;
     }
@@ -604,7 +690,7 @@ contract PaymentProcessor is
      * @dev Reserved storage space for future upgrades
      * This allows adding new state variables without shifting storage layout
      */
-    uint256[49] private __gap;
+    uint256[46] private __gap;
 }
 
 /**
