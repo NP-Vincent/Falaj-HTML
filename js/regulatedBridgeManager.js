@@ -24,6 +24,12 @@ if (!ethers) {
 
 let bridgeManagerAbi = null;
 let bridgeManager = null;
+const ERC20_APPROVAL_ABI = [
+  'function decimals() view returns (uint8)',
+  'function symbol() view returns (string)',
+  'function allowance(address owner, address spender) view returns (uint256)',
+  'function approve(address spender, uint256 amount) returns (bool)'
+];
 
 function normalizeAbi(abiData) {
   if (Array.isArray(abiData)) {
@@ -74,6 +80,9 @@ function setActionButtonsEnabled(enabled) {
     'set-minting-mode-btn',
     'set-payment-processor-btn',
     'set-teleporter-messenger-btn',
+    'token-details-btn',
+    'allowance-btn',
+    'approve-btn',
     'summary-btn',
     'roles-btn',
     'bridge-stats-btn',
@@ -144,6 +153,23 @@ function parseTokenAmount(value, label) {
     throw new Error(`${label} must be greater than 0.`);
   }
   return amount;
+}
+
+function parseTokenAmountWithDecimals(value, label, decimals) {
+  const sanitized = requireValue(value, label);
+  const amount = ethers.parseUnits(sanitized, decimals);
+  if (amount <= 0n) {
+    throw new Error(`${label} must be greater than 0.`);
+  }
+  return amount;
+}
+
+async function getTokenMetadata(tokenAddress) {
+  const signer = getSigner();
+  const provider = signer?.provider ?? signer;
+  const token = new ethers.Contract(tokenAddress, ERC20_APPROVAL_ABI, provider);
+  const [decimals, symbol] = await Promise.all([token.decimals(), token.symbol()]);
+  return { decimals: Number(decimals), symbol };
 }
 
 async function ensureBridgeManager() {
@@ -284,6 +310,54 @@ async function handleSetTeleporterMessenger() {
   show(`Teleporter messenger update confirmed: ${tx.hash}`);
 }
 
+async function handleTokenDetails() {
+  const tokenAddress = parseAddress(document.getElementById('token-details-address').value, 'Token address');
+  const { decimals, symbol } = await getTokenMetadata(tokenAddress);
+  const output = [
+    `Token: ${tokenAddress}`,
+    `Symbol: ${symbol}`,
+    `Decimals: ${decimals}`,
+    `1 token = ${ethers.formatUnits(ethers.parseUnits('1', decimals), decimals)} (formatted)`
+  ];
+  show(output.join('\n'));
+}
+
+async function handleAllowance() {
+  const tokenAddress = parseAddress(document.getElementById('allowance-token').value, 'Token address');
+  const owner = parseAddress(document.getElementById('allowance-owner').value, 'Owner');
+  const spender = parseAddress(document.getElementById('allowance-spender').value, 'Spender');
+  const { decimals, symbol } = await getTokenMetadata(tokenAddress);
+  const signer = getSigner();
+  const provider = signer?.provider ?? signer;
+  const token = new ethers.Contract(tokenAddress, ERC20_APPROVAL_ABI, provider);
+  const allowance = await token.allowance(owner, spender);
+  const output = [
+    `Token: ${tokenAddress}`,
+    `Owner: ${owner}`,
+    `Spender: ${spender}`,
+    `Allowance: ${ethers.formatUnits(allowance, decimals)} ${symbol}`,
+    `Raw allowance: ${allowance.toString()}`
+  ];
+  show(output.join('\n'));
+}
+
+async function handleApprove() {
+  const tokenAddress = parseAddress(document.getElementById('approve-token').value, 'Token address');
+  const spender = parseAddress(document.getElementById('approve-spender').value, 'Spender');
+  const { decimals, symbol } = await getTokenMetadata(tokenAddress);
+  const amount = parseTokenAmountWithDecimals(
+    document.getElementById('approve-amount').value,
+    'Amount',
+    decimals
+  );
+  const signer = getSigner();
+  const token = new ethers.Contract(tokenAddress, ERC20_APPROVAL_ABI, signer);
+  const tx = await token.approve(spender, amount);
+  show(`Approve submitted: ${tx.hash}`);
+  await tx.wait();
+  show(`Approve confirmed: ${tx.hash}\nApproved: ${ethers.formatUnits(amount, decimals)} ${symbol}`);
+}
+
 async function handleSummary() {
   const contract = await ensureBridgeManager();
   const [
@@ -398,6 +472,9 @@ function boot() {
   wireButton('set-minting-mode-btn', handleSetMintingMode);
   wireButton('set-payment-processor-btn', handleSetPaymentProcessor);
   wireButton('set-teleporter-messenger-btn', handleSetTeleporterMessenger);
+  wireButton('token-details-btn', handleTokenDetails);
+  wireButton('allowance-btn', handleAllowance);
+  wireButton('approve-btn', handleApprove);
   wireButton('summary-btn', handleSummary);
   wireButton('roles-btn', handleRoles);
   wireButton('bridge-stats-btn', handleBridgeStats);
