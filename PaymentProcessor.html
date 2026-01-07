@@ -124,6 +124,19 @@
       <button id="set-teleporter-messenger-btn" disabled>Set</button>
     </div>
     <div class="action-row">
+      <strong>Set Teleporter Gas Config</strong>
+      <input id="teleporter-gas-chain-id" placeholder="Chain ID (bytes32 or label)" />
+      <input id="teleporter-gas-limit" placeholder="Required gas limit" />
+      <input id="teleporter-relayer-fee" placeholder="Relayer fee (wei)" />
+      <button id="set-teleporter-gas-btn" disabled>Set</button>
+    </div>
+    <div class="action-row">
+      <strong>Set Allowed Relayers</strong>
+      <input id="teleporter-relayer-chain-id" placeholder="Chain ID (bytes32 or label)" />
+      <input id="teleporter-relayer-addresses" placeholder="Relayer addresses (comma-separated)" />
+      <button id="set-teleporter-relayers-btn" disabled>Set</button>
+    </div>
+    <div class="action-row">
       <strong>Withdraw Fees</strong>
       <input id="withdraw-fees-to" placeholder="Recipient address" />
       <button id="withdraw-fees-btn" disabled>Withdraw</button>
@@ -166,6 +179,16 @@
       <strong>Get Destination Bridge Manager</strong>
       <input id="destination-chain-query-id" placeholder="Chain ID (bytes32 or label)" />
       <button id="destination-manager-btn" disabled>Get Manager</button>
+    </div>
+    <div class="action-row">
+      <strong>Teleporter Gas Config</strong>
+      <input id="teleporter-gas-query-id" placeholder="Chain ID (bytes32 or label)" />
+      <button id="teleporter-gas-btn" disabled>Get Config</button>
+    </div>
+    <div class="action-row">
+      <strong>Teleporter Allowed Relayers</strong>
+      <input id="teleporter-relayer-query-id" placeholder="Chain ID (bytes32 or label)" />
+      <button id="teleporter-relayers-btn" disabled>Get Relayers</button>
     </div>
     <div class="action-row">
       <strong>Token Supported?</strong>

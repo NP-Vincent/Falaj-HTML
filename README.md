@@ -134,6 +134,7 @@ The Payment Processor UI provides:
 - Wallet connect/disconnect
 - Native/stablecoin deposits with payment references
 - Protocol fee, exchange rate, and destination chain configuration
+- Teleporter gas config and allowed relayer configuration
 - Access control and fee withdrawals
 
 ### Configuration
