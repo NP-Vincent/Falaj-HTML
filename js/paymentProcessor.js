@@ -24,7 +24,11 @@ if (!ethers) {
 
 let paymentProcessorAbi = null;
 let paymentProcessor = null;
-const ERC20_METADATA_ABI = ['function decimals() view returns (uint8)'];
+const ERC20_ABI = [
+  'function allowance(address owner, address spender) view returns (uint256)',
+  'function approve(address spender, uint256 amount) returns (bool)',
+  'function decimals() view returns (uint8)'
+];
 
 function normalizeAbi(abiData) {
   if (Array.isArray(abiData)) {
@@ -84,6 +88,7 @@ function setActionButtonsEnabled(enabled) {
     'exchange-rate-btn',
     'destination-manager-btn',
     'token-supported-btn',
+    'token-decimals-btn',
     'calculate-aed-btn'
   ];
   actionButtons.forEach((id) => {
@@ -180,17 +185,44 @@ async function ensurePaymentProcessor() {
 
 async function getTokenDecimals(tokenAddress) {
   if (tokenAddress === ethers.ZeroAddress) {
-    return 18;
+    return { decimals: 18, isFallback: false };
   }
   const signer = getSigner();
   const provider = signer?.provider ?? signer;
-  const token = new ethers.Contract(tokenAddress, ERC20_METADATA_ABI, provider);
+  const token = new ethers.Contract(tokenAddress, ERC20_ABI, provider);
   try {
     const decimals = await token.decimals();
-    return Number(decimals);
+    return { decimals: Number(decimals), isFallback: false };
   } catch (err) {
-    return 18;
+    logEvent(`Warning: failed to read token decimals for ${tokenAddress}. Using fallback of 18.`);
+    return { decimals: 18, isFallback: true };
   }
+}
+
+async function ensureTokenAllowance(tokenAddress, spender, requiredAmount, tokenDecimals) {
+  const signer = getSigner();
+  if (!signer) {
+    throw new Error('Wallet not connected.');
+  }
+  const token = new ethers.Contract(tokenAddress, ERC20_ABI, signer);
+  const owner = await signer.getAddress();
+  const currentAllowance = await token.allowance(owner, spender);
+  if (currentAllowance >= requiredAmount) {
+    logEvent(
+      `Allowance sufficient: ${ethers.formatUnits(currentAllowance, tokenDecimals)} tokens approved for ${spender}.`
+    );
+    return;
+  }
+  show(
+    `Approving ${ethers.formatUnits(
+      requiredAmount,
+      tokenDecimals
+    )} tokens for ${spender} (current allowance ${ethers.formatUnits(currentAllowance, tokenDecimals)}).`
+  );
+  const approvalTx = await token.approve(spender, requiredAmount);
+  show(`Approve submitted: ${approvalTx.hash}`);
+  await approvalTx.wait();
+  show(`Approve confirmed: ${approvalTx.hash}`);
 }
 
 async function handleConnect() {
@@ -236,7 +268,7 @@ async function handleDepositAVAX() {
 async function handleDepositStablecoin() {
   const contract = await ensurePaymentProcessor();
   const token = parseAddress(document.getElementById('deposit-stablecoin-token').value, 'Token');
-  const tokenDecimals = await getTokenDecimals(token);
+  const { decimals: tokenDecimals, isFallback } = await getTokenDecimals(token);
   const amount = parseTokenAmountWithDecimals(
     document.getElementById('deposit-stablecoin-amount').value,
     'Token amount',
@@ -244,6 +276,10 @@ async function handleDepositStablecoin() {
   );
   const recipient = parseAddress(document.getElementById('deposit-stablecoin-recipient').value, 'Recipient');
   const paymentRef = requireValue(document.getElementById('deposit-stablecoin-ref').value, 'Payment reference');
+  if (isFallback) {
+    logEvent(`Using fallback decimals (18). Verify token decimals for ${token}.`);
+  }
+  await ensureTokenAllowance(token, contract.target, amount, tokenDecimals);
   const tx = await contract.depositStablecoin(token, amount, recipient, paymentRef);
   show(`Stablecoin deposit submitted: ${tx.hash}`);
   await tx.wait();
@@ -254,7 +290,7 @@ async function handleEmergencyWithdraw() {
   const contract = await ensurePaymentProcessor();
   const token = parseAddress(document.getElementById('emergency-token').value, 'Token');
   const to = parseAddress(document.getElementById('emergency-recipient').value, 'Recipient');
-  const tokenDecimals = await getTokenDecimals(token);
+  const { decimals: tokenDecimals } = await getTokenDecimals(token);
   const amount = parseTokenAmountWithDecimals(
     document.getElementById('emergency-amount').value,
     'Token amount',
@@ -434,14 +470,29 @@ async function handleTokenSupported() {
 async function handleCalculateAed() {
   const contract = await ensurePaymentProcessor();
   const token = parseTokenAddress(document.getElementById('calculate-aed-token').value, 'Token');
-  const tokenDecimals = await getTokenDecimals(token);
+  const { decimals: tokenDecimals, isFallback } = await getTokenDecimals(token);
   const amount = parseTokenAmountWithDecimals(
     document.getElementById('calculate-aed-amount').value,
     'Token amount',
     tokenDecimals
   );
   const aedAmount = await contract.calculateAedAmount(token, amount);
-  show(`AED amount: ${ethers.formatUnits(aedAmount, 2)} AED`);
+  const decimalsNote = isFallback ? ' (fallback used)' : '';
+  show(
+    [
+      `Token decimals: ${tokenDecimals}${decimalsNote}`,
+      `Token amount (display): ${ethers.formatUnits(amount, tokenDecimals)}`,
+      `Token amount (base units): ${amount}`,
+      `AED amount (2 decimals): ${ethers.formatUnits(aedAmount, 2)} AED`
+    ].join('\n')
+  );
+}
+
+async function handleTokenDecimals() {
+  const token = parseTokenAddress(document.getElementById('token-decimals-token').value, 'Token');
+  const { decimals: tokenDecimals, isFallback } = await getTokenDecimals(token);
+  const decimalsNote = isFallback ? ' (fallback used)' : '';
+  show(`Token decimals: ${tokenDecimals}${decimalsNote}`);
 }
 
 function wireButton(id, handler) {
@@ -484,6 +535,7 @@ function boot() {
   wireButton('exchange-rate-btn', handleExchangeRate);
   wireButton('destination-manager-btn', handleDestinationManager);
   wireButton('token-supported-btn', handleTokenSupported);
+  wireButton('token-decimals-btn', handleTokenDecimals);
   wireButton('calculate-aed-btn', handleCalculateAed);
 
   setActionButtonsEnabled(false);
