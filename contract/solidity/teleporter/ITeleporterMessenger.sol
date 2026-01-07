@@ -123,7 +123,7 @@ interface ITeleporterMessenger {
      */
     function sendCrossChainMessage(
         TeleporterMessageInput calldata messageInput
-    ) external payable returns (bytes32);
+    ) external returns (bytes32);
 
     /**
      * @notice Called by transactions to retry the sending of a cross-chain message.
