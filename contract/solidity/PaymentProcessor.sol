@@ -644,7 +644,7 @@ contract PaymentProcessor is
             message: payload
         });
 
-        messageId = teleporter.sendCrossChainMessage{value: relayerFee}(messageInput);
+        messageId = teleporter.sendCrossChainMessage(messageInput);
 
         return messageId;
     }
