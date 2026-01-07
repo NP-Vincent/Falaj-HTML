@@ -43,5 +43,5 @@ export const FEE_DISTRIBUTION_ABI_URL = 'contract/abi/FeeDistribution.json';
 export const PAYMENT_PROCESSOR_ADDRESS = '0x189c4B40C5d073231e8fcd65370F55B55f25321c';
 export const PAYMENT_PROCESSOR_ABI_URL = 'contract/abi/PaymentProcessor.json';
 
-export const REGULATED_BRIDGE_MANAGER_ADDRESS = '0x5Df493383E20260A2F4B18B31dE927AAc997eF32';
+export const REGULATED_BRIDGE_MANAGER_ADDRESS = '0x7496Ae44e973c303fbF1fA58940cfa9ec9E08a1D';
 export const REGULATED_BRIDGE_MANAGER_ABI_URL = 'contract/abi/RegulatedBridgeManager.json';
