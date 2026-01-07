@@ -281,9 +281,6 @@ contract RegulatedBridgeManager is
             revert MessageAlreadyProcessed(messageId);
         }
 
-        // Mark message as processed (before external calls)
-        processedMessages[messageId] = true;
-
         // Validate recipient compliance
         (bool canReceive, string memory reason) = _canReceive(payment.recipient);
         if (!canReceive) {
@@ -292,7 +289,7 @@ contract RegulatedBridgeManager is
                 payment.recipient,
                 reason
             );
-            return;
+            revert(reason);
         }
 
         // Execute the transfer
@@ -303,8 +300,11 @@ contract RegulatedBridgeManager is
                 payment.recipient,
                 "Transfer execution failed"
             );
-            return;
+            revert TransferFailed();
         }
+
+        // Mark message as processed after a successful transfer
+        processedMessages[messageId] = true;
 
         // Update statistics
         totalBridgedIn += payment.aedAmount;
