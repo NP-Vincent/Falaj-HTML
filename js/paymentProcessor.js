@@ -8,6 +8,7 @@ import {
   connectWallet,
   disconnectWallet,
   ensureCorrectNetwork,
+  getProvider,
   getSigner,
   onAccountsChanged,
   onChainChanged,
@@ -276,9 +277,22 @@ function renderContractAddress() {
 
 async function handleDepositAVAX() {
   const contract = await ensurePaymentProcessor();
+  const provider = getProvider();
+  const signer = getSigner();
   const recipient = parseAddress(document.getElementById('deposit-avax-recipient').value, 'Recipient');
   const paymentRef = requireValue(document.getElementById('deposit-avax-ref').value, 'Payment reference');
   const amount = parseEtherAmount(document.getElementById('deposit-avax-amount').value, 'AVAX amount');
+  if (signer && provider) {
+    const address = signer.getAddress ? await signer.getAddress() : signer.address;
+    const balance = await provider.getBalance(address);
+    if (amount > balance) {
+      throw new Error(
+        `Insufficient AVAX balance. Wallet balance: ${ethers.formatEther(
+          balance
+        )} AVAX. Ensure the amount is entered in AVAX (not wei).`
+      );
+    }
+  }
   const tx = await contract.depositAVAX(recipient, paymentRef, { value: amount });
   show(`AVAX deposit submitted: ${tx.hash}`);
   await tx.wait();
