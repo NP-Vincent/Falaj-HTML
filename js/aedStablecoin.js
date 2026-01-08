@@ -15,6 +15,7 @@ import {
 } from './wallet.js';
 import { initLogs, logEvent, logError } from './logs.js';
 import { fetchRoleValues } from './roles.js';
+import { parseDecimalAmount } from './amounts.js';
 
 const ethers = window.ethers;
 
@@ -103,13 +104,7 @@ function parseAddress(value, label) {
 }
 
 function parseTokenAmount(value) {
-  const raw = requireValue(value, 'Amount');
-  const normalized = raw.replace(/,/g, '');
-  const parsed = Number(normalized);
-  if (!Number.isFinite(parsed) || parsed <= 0) {
-    throw new Error('Amount must be a positive number.');
-  }
-  return ethers.parseUnits(normalized, tokenDecimals);
+  return parseDecimalAmount(value, tokenDecimals, 'Amount');
 }
 
 function formatTokenAmount(amount) {

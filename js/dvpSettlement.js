@@ -15,6 +15,7 @@ import {
 } from './wallet.js';
 import { initLogs, logEvent, logError } from './logs.js';
 import { fetchRoleValues } from './roles.js';
+import { parseDecimalAmount } from './amounts.js';
 
 const ethers = window.ethers;
 
@@ -110,16 +111,6 @@ function parseAddress(value, label) {
   return address;
 }
 
-function parsePositiveNumber(value, label) {
-  const raw = requireValue(value, label);
-  const normalized = raw.replace(/,/g, '');
-  const parsed = Number(normalized);
-  if (!Number.isFinite(parsed) || parsed <= 0) {
-    throw new Error(`${label} must be a positive number.`);
-  }
-  return normalized;
-}
-
 function parseId(value, label = 'Settlement ID') {
   const raw = requireValue(value, label);
   const parsed = Number(raw);
@@ -139,17 +130,11 @@ function parseNonNegativeInteger(value, label) {
 }
 
 function parseBondAmount(value) {
-  const normalized = parsePositiveNumber(value, 'Bond amount');
-  const parsed = Number(normalized);
-  if (!Number.isInteger(parsed)) {
-    throw new Error('Bond amount must be a whole number.');
-  }
-  return ethers.parseUnits(normalized, 0);
+  return parseDecimalAmount(value, 0, 'Bond amount', { integerOnly: true });
 }
 
 function parseAedAmount(value) {
-  const normalized = parsePositiveNumber(value, 'AED amount');
-  return ethers.parseUnits(normalized, AED_DECIMALS);
+  return parseDecimalAmount(value, AED_DECIMALS, 'AED amount');
 }
 
 function formatAmount(amount, decimals) {
