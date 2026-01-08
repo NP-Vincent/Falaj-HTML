@@ -147,12 +147,24 @@ function parseHexBytes(value, label) {
   return sanitized;
 }
 
-function parseTokenAmount(value, label) {
-  return parseDecimalAmount(value, 18, label);
-}
-
 function parseTokenAmountWithDecimals(value, label, decimals) {
   return parseDecimalAmount(value, decimals, label);
+}
+
+async function getTokenDecimals(tokenAddress) {
+  if (tokenAddress === ethers.ZeroAddress) {
+    return { decimals: 18, isFallback: false };
+  }
+  const signer = getSigner();
+  const provider = signer?.provider ?? signer;
+  const token = new ethers.Contract(tokenAddress, ERC20_APPROVAL_ABI, provider);
+  try {
+    const decimals = await token.decimals();
+    return { decimals: Number(decimals), isFallback: false };
+  } catch (err) {
+    logEvent(`Warning: failed to read token decimals for ${tokenAddress}. Using fallback of 18.`);
+    return { decimals: 18, isFallback: true };
+  }
 }
 
 async function getTokenMetadata(tokenAddress) {
@@ -238,7 +250,13 @@ async function handleReceiveTeleporterMessage() {
 async function handleRescueTokens() {
   const contract = await ensureBridgeManager();
   const token = parseTokenAddress(document.getElementById('rescue-token').value, 'Token');
-  const amount = parseTokenAmount(document.getElementById('rescue-amount').value, 'Token amount');
+  const { decimals: tokenDecimals, isFallback } = await getTokenDecimals(token);
+  const amount = parseTokenAmountWithDecimals(
+    document.getElementById('rescue-amount').value,
+    'Token amount',
+    tokenDecimals
+  );
+  logEvent(`Token decimals: ${tokenDecimals}${isFallback ? ' (fallback used)' : ''}`);
   const tx = await contract.rescueTokens(token, amount);
   show(`Rescue submitted: ${tx.hash}`);
   await tx.wait();
