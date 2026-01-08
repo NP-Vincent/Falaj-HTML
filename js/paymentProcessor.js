@@ -27,7 +27,10 @@ if (!ethers) {
 let paymentProcessorAbi = null;
 let paymentProcessor = null;
 const RATE_DECIMALS = 18n;
-const AED_DECIMALS = 2n;
+const AED_STABLECOIN_DECIMALS = 2n;
+const AED_DISPLAY_DECIMALS = Number(AED_STABLECOIN_DECIMALS);
+const NATIVE_AVAX_DECIMALS = 18;
+const NATIVE_EAED_DECIMALS = 18;
 const HARDCODED_TOKENS = [
   {
     chain: 'Avalanche Fuji C-Chain',
@@ -43,9 +46,23 @@ const HARDCODED_TOKENS = [
   },
   {
     chain: 'Falaj Testnet',
-    symbol: 'AED',
+    symbol: 'AED Stablecoin',
     address: '0xa5be895EB6DD499b688AE4bD42Fd78500cE24b0F',
     decimals: 2
+  }
+];
+const NATIVE_TOKEN_REFERENCES = [
+  {
+    chain: 'Avalanche Fuji C-Chain',
+    symbol: 'AVAX',
+    address: 'native',
+    decimals: NATIVE_AVAX_DECIMALS
+  },
+  {
+    chain: 'Falaj Testnet',
+    symbol: 'E-AED',
+    address: 'native',
+    decimals: NATIVE_EAED_DECIMALS
   }
 ];
 const HARDCODED_TOKEN_MAP = new Map(
@@ -147,7 +164,7 @@ function parseAddress(value, label) {
 function parseTokenAddress(value, label) {
   const sanitized = requireValue(value, label);
   const lowered = sanitized.toLowerCase();
-  if (lowered === 'native' || lowered === 'avax' || lowered === '0x0') {
+  if (['native', 'avax', 'e-aed', 'eaed', '0x0'].includes(lowered)) {
     return ethers.ZeroAddress;
   }
   if (!ethers.isAddress(sanitized)) {
@@ -205,12 +222,12 @@ function parseTokenAmountWithDecimals(value, label, decimals) {
 }
 
 function calculateAedAmount(amount, rate, sourceDecimals) {
-  const divisor = 10n ** (BigInt(sourceDecimals) + RATE_DECIMALS - AED_DECIMALS);
+  const divisor = 10n ** (BigInt(sourceDecimals) + RATE_DECIMALS - AED_STABLECOIN_DECIMALS);
   return (amount * rate) / divisor;
 }
 
 function parseEtherAmount(value, label) {
-  return parseDecimalAmount(value, 18, label);
+  return parseDecimalAmount(value, NATIVE_AVAX_DECIMALS, label);
 }
 
 async function ensurePaymentProcessor() {
@@ -261,7 +278,7 @@ async function getSignerBalance(signer) {
 
 async function getTokenDecimals(tokenAddress) {
   if (tokenAddress === ethers.ZeroAddress) {
-    return { decimals: 18, source: 'native' };
+    return { decimals: NATIVE_AVAX_DECIMALS, source: 'native (AVAX)' };
   }
   const hardcoded = HARDCODED_TOKEN_MAP.get(tokenAddress.toLowerCase());
   if (hardcoded) {
@@ -374,7 +391,9 @@ async function handleDepositStablecoin() {
   const aedAmount = calculateAedAmount(amount, exchangeRate, tokenDecimals);
   logEvent(`Token decimals: ${tokenDecimals} (${source})`);
   logEvent(`Exchange rate (18 decimals): ${exchangeRate}`);
-  logEvent(`AED amount (2 decimals): ${ethers.formatUnits(aedAmount, 2)} AED`);
+  logEvent(
+    `AED amount (${AED_DISPLAY_DECIMALS} decimals): ${ethers.formatUnits(aedAmount, AED_DISPLAY_DECIMALS)} AED`
+  );
   if (aedAmount === 0n) {
     throw new Error('AED amount rounds to 0. Increase the token amount or update the exchange rate.');
   }
@@ -553,7 +572,7 @@ async function handleSummary() {
   const output = [
     `Accumulated fees: ${ethers.formatEther(accumulatedFees)} AVAX`,
     `Protocol fee (bps): ${protocolFeeBps}`,
-    `Total AED value processed: ${ethers.formatUnits(totalAedValueProcessed, 2)} AED`,
+    `Total AED value processed: ${ethers.formatUnits(totalAedValueProcessed, AED_DISPLAY_DECIMALS)} AED`,
     `Total payments processed: ${totalPaymentsProcessed}`,
     `Default destination chain: ${defaultDestinationChain}`,
     `Teleporter messenger: ${teleporterMessenger}`,
@@ -627,7 +646,7 @@ async function handleCalculateAed() {
       `Token decimals: ${tokenDecimals} (${source})`,
       `Token amount (display): ${ethers.formatUnits(amount, tokenDecimals)}`,
       `Token amount (base units): ${amount}`,
-      `AED amount (2 decimals): ${ethers.formatUnits(aedAmount, 2)} AED`
+      `AED amount (${AED_DISPLAY_DECIMALS} decimals): ${ethers.formatUnits(aedAmount, AED_DISPLAY_DECIMALS)} AED`
     ].join('\n')
   );
 }
@@ -655,6 +674,11 @@ function renderTokenReference() {
   const list = document.getElementById('token-reference-list');
   if (!list) return;
   list.innerHTML = '';
+  NATIVE_TOKEN_REFERENCES.forEach((token) => {
+    const item = document.createElement('li');
+    item.textContent = `${token.symbol} (${token.chain}) — ${token.address} (decimals: ${token.decimals})`;
+    list.appendChild(item);
+  });
   HARDCODED_TOKENS.forEach((token) => {
     const item = document.createElement('li');
     item.textContent = `${token.symbol} (${token.chain}) — ${token.address} (decimals: ${token.decimals})`;
@@ -666,7 +690,7 @@ function renderTokenReference() {
   datalist.innerHTML = '';
   const nativeOption = document.createElement('option');
   nativeOption.value = 'native';
-  nativeOption.label = 'Native AVAX';
+  nativeOption.label = `Native AVAX (${NATIVE_AVAX_DECIMALS} decimals)`;
   datalist.appendChild(nativeOption);
   HARDCODED_TOKENS.forEach((token) => {
     const option = document.createElement('option');
