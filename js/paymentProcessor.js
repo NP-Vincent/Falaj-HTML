@@ -25,6 +25,8 @@ if (!ethers) {
 
 let paymentProcessorAbi = null;
 let paymentProcessor = null;
+const RATE_DECIMALS = 18n;
+const AED_DECIMALS = 2n;
 const ERC20_ABI = [
   'function allowance(address owner, address spender) view returns (uint256)',
   'function approve(address spender, uint256 amount) returns (bool)',
@@ -183,6 +185,11 @@ function parseTokenAmountWithDecimals(value, label, decimals) {
   return amount;
 }
 
+function calculateAedAmount(amount, rate, sourceDecimals) {
+  const divisor = 10n ** (BigInt(sourceDecimals) + RATE_DECIMALS - AED_DECIMALS);
+  return (amount * rate) / divisor;
+}
+
 function parseEtherAmount(value, label) {
   const sanitized = requireValue(value, label);
   const amount = ethers.parseEther(sanitized);
@@ -203,6 +210,14 @@ async function ensurePaymentProcessor() {
   const abi = await getPaymentProcessorAbi();
   paymentProcessor = new ethers.Contract(PAYMENT_PROCESSOR_ADDRESS, abi, signer);
   return paymentProcessor;
+}
+
+async function getExchangeRate(contract, token) {
+  const rate = await contract.getExchangeRate(token);
+  if (rate === 0n) {
+    throw new Error(`Token ${token} is not supported. Configure an exchange rate first.`);
+  }
+  return rate;
 }
 
 async function resolveRecipient(inputId) {
@@ -336,6 +351,14 @@ async function handleDepositStablecoin() {
   const paymentRef = requireValue(document.getElementById('deposit-stablecoin-ref').value, 'Payment reference');
   if (isFallback) {
     logEvent(`Using fallback decimals (18). Verify token decimals for ${token}.`);
+  }
+  const exchangeRate = await getExchangeRate(contract, token);
+  const aedAmount = calculateAedAmount(amount, exchangeRate, tokenDecimals);
+  logEvent(`Token decimals: ${tokenDecimals}${isFallback ? ' (fallback used)' : ''}`);
+  logEvent(`Exchange rate (18 decimals): ${exchangeRate}`);
+  logEvent(`AED amount (2 decimals): ${ethers.formatUnits(aedAmount, 2)} AED`);
+  if (aedAmount === 0n) {
+    throw new Error('AED amount rounds to 0. Increase the token amount or update the exchange rate.');
   }
   await ensureTokenAllowance(token, contract.target, amount, tokenDecimals);
   const tx = await contract.depositStablecoin(token, amount, recipient, paymentRef);
