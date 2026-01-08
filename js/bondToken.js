@@ -24,6 +24,7 @@ if (!ethers) {
 }
 
 const BOND_STATE_LABELS = ['ISSUED', 'ACTIVE', 'MATURED', 'REDEEMED', 'FROZEN'];
+const INTEGER_PATTERN = /^\d+$/;
 
 let bondTokenAbi = null;
 let bondToken = null;
@@ -108,6 +109,14 @@ function parseAddress(value, label) {
 
 function parseTokenAmount(value) {
   return parseDecimalAmount(value, tokenDecimals, 'Amount', { integerOnly: tokenDecimals === 0 });
+}
+
+function parseUnfreezeState(value) {
+  const trimmed = value.trim();
+  if (!INTEGER_PATTERN.test(trimmed)) {
+    throw new Error('Unfreeze state must be a number.');
+  }
+  return BigInt(trimmed);
 }
 
 function formatTokenAmount(amount) {
@@ -221,10 +230,7 @@ async function handleFreeze() {
 async function handleUnfreeze() {
   const contract = await ensureBondToken();
   const rawState = document.getElementById('unfreeze-state').value;
-  const state = Number(rawState);
-  if (!Number.isInteger(state)) {
-    throw new Error('Unfreeze state must be a number.');
-  }
+  const state = parseUnfreezeState(rawState);
   const tx = await contract.unfreeze(state);
   show(`Unfreeze submitted: ${tx.hash}`);
   await tx.wait();

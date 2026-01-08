@@ -32,6 +32,7 @@ const SETTLEMENT_STATUS_LABELS = [
   'EXECUTED',
   'CANCELLED'
 ];
+const INTEGER_PATTERN = /^\d+$/;
 
 let dvpAbi = null;
 let dvpSettlement = null;
@@ -113,24 +114,55 @@ function parseAddress(value, label) {
 
 function parseId(value, label = 'Settlement ID') {
   const raw = requireValue(value, label);
-  const parsed = Number(raw);
-  if (!Number.isFinite(parsed) || parsed <= 0 || !Number.isInteger(parsed)) {
+  if (!INTEGER_PATTERN.test(raw)) {
     throw new Error(`${label} must be a positive integer.`);
   }
-  return BigInt(parsed);
+  const parsed = BigInt(raw);
+  if (parsed <= 0n) {
+    throw new Error(`${label} must be a positive integer.`);
+  }
+  return parsed;
 }
 
 function parseNonNegativeInteger(value, label) {
   const raw = requireValue(value, label);
-  const parsed = Number(raw);
-  if (!Number.isFinite(parsed) || parsed < 0 || !Number.isInteger(parsed)) {
+  if (!INTEGER_PATTERN.test(raw)) {
     throw new Error(`${label} must be a non-negative integer.`);
   }
-  return BigInt(parsed);
+  return BigInt(raw);
+}
+
+function parseIntegerAmount(value, label) {
+  if (!value) {
+    throw new Error(`${label} is required.`);
+  }
+  const trimmed = value.trim();
+  if (!trimmed) {
+    throw new Error(`${label} is required.`);
+  }
+  const sanitized = trimmed.replace(/,/g, '');
+  if (/e/i.test(sanitized)) {
+    throw new Error(`${label} must be a standard decimal value.`);
+  }
+  if (sanitized.includes('.')) {
+    throw new Error(`${label} must be a whole number.`);
+  }
+  if (!INTEGER_PATTERN.test(sanitized)) {
+    throw new Error(`${label} must be a valid decimal number.`);
+  }
+  try {
+    const amount = BigInt(sanitized);
+    if (amount <= 0n) {
+      throw new Error(`${label} must be greater than 0.`);
+    }
+    return amount;
+  } catch (err) {
+    throw new Error(`${label} must be a valid amount.`);
+  }
 }
 
 function parseBondAmount(value) {
-  return parseDecimalAmount(value, 0, 'Bond amount', { integerOnly: true });
+  return parseIntegerAmount(value, 'Bond amount');
 }
 
 function parseAedAmount(value) {
