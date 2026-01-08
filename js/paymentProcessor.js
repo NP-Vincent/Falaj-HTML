@@ -28,6 +28,29 @@ let paymentProcessorAbi = null;
 let paymentProcessor = null;
 const RATE_DECIMALS = 18n;
 const AED_DECIMALS = 2n;
+const HARDCODED_TOKENS = [
+  {
+    chain: 'Avalanche Fuji C-Chain',
+    symbol: 'USDC',
+    address: '0x5425890298aed601595a70AB815c96711a31Bc65',
+    decimals: 6
+  },
+  {
+    chain: 'Avalanche Fuji C-Chain',
+    symbol: 'EUROe',
+    address: '0xA089a21902914C3f3325dBE2334E9B466071E5f1',
+    decimals: 6
+  },
+  {
+    chain: 'Falaj Testnet',
+    symbol: 'AED',
+    address: '0xa5be895EB6DD499b688AE4bD42Fd78500cE24b0F',
+    decimals: 2
+  }
+];
+const HARDCODED_TOKEN_MAP = new Map(
+  HARDCODED_TOKENS.map((token) => [token.address.toLowerCase(), token])
+);
 const ERC20_ABI = [
   'function allowance(address owner, address spender) view returns (uint256)',
   'function approve(address spender, uint256 amount) returns (bool)',
@@ -238,17 +261,21 @@ async function getSignerBalance(signer) {
 
 async function getTokenDecimals(tokenAddress) {
   if (tokenAddress === ethers.ZeroAddress) {
-    return { decimals: 18, isFallback: false };
+    return { decimals: 18, source: 'native' };
+  }
+  const hardcoded = HARDCODED_TOKEN_MAP.get(tokenAddress.toLowerCase());
+  if (hardcoded) {
+    return { decimals: hardcoded.decimals, source: `hardcoded (${hardcoded.symbol})` };
   }
   const signer = getSigner();
   const provider = signer?.provider ?? signer;
   const token = new ethers.Contract(tokenAddress, ERC20_ABI, provider);
   try {
     const decimals = await token.decimals();
-    return { decimals: Number(decimals), isFallback: false };
+    return { decimals: Number(decimals), source: 'onchain' };
   } catch (err) {
     logEvent(`Warning: failed to read token decimals for ${tokenAddress}. Using fallback of 18.`);
-    return { decimals: 18, isFallback: true };
+    return { decimals: 18, source: 'fallback' };
   }
 }
 
@@ -332,7 +359,7 @@ async function handleDepositAVAX() {
 async function handleDepositStablecoin() {
   const contract = await ensurePaymentProcessor();
   const token = parseAddress(document.getElementById('deposit-stablecoin-token').value, 'Token');
-  const { decimals: tokenDecimals, isFallback } = await getTokenDecimals(token);
+  const { decimals: tokenDecimals, source } = await getTokenDecimals(token);
   const amount = parseTokenAmountWithDecimals(
     document.getElementById('deposit-stablecoin-amount').value,
     'Token amount',
@@ -340,12 +367,12 @@ async function handleDepositStablecoin() {
   );
   const recipient = await resolveRecipient('deposit-stablecoin-recipient');
   const paymentRef = requireValue(document.getElementById('deposit-stablecoin-ref').value, 'Payment reference');
-  if (isFallback) {
+  if (source === 'fallback') {
     logEvent(`Using fallback decimals (18). Verify token decimals for ${token}.`);
   }
   const exchangeRate = await getExchangeRate(contract, token);
   const aedAmount = calculateAedAmount(amount, exchangeRate, tokenDecimals);
-  logEvent(`Token decimals: ${tokenDecimals}${isFallback ? ' (fallback used)' : ''}`);
+  logEvent(`Token decimals: ${tokenDecimals} (${source})`);
   logEvent(`Exchange rate (18 decimals): ${exchangeRate}`);
   logEvent(`AED amount (2 decimals): ${ethers.formatUnits(aedAmount, 2)} AED`);
   if (aedAmount === 0n) {
@@ -362,13 +389,13 @@ async function handleEmergencyWithdraw() {
   const contract = await ensurePaymentProcessor();
   const token = parseAddress(document.getElementById('emergency-token').value, 'Token');
   const to = parseAddress(document.getElementById('emergency-recipient').value, 'Recipient');
-  const { decimals: tokenDecimals, isFallback } = await getTokenDecimals(token);
+  const { decimals: tokenDecimals, source } = await getTokenDecimals(token);
   const amount = parseTokenAmountWithDecimals(
     document.getElementById('emergency-amount').value,
     'Token amount',
     tokenDecimals
   );
-  logEvent(`Token decimals: ${tokenDecimals}${isFallback ? ' (fallback used)' : ''}`);
+  logEvent(`Token decimals: ${tokenDecimals} (${source})`);
   const tx = await contract.emergencyWithdrawToken(token, to, amount);
   show(`Emergency withdraw submitted: ${tx.hash}`);
   await tx.wait();
@@ -588,17 +615,16 @@ async function handleTokenSupported() {
 async function handleCalculateAed() {
   const contract = await ensurePaymentProcessor();
   const token = parseTokenAddress(document.getElementById('calculate-aed-token').value, 'Token');
-  const { decimals: tokenDecimals, isFallback } = await getTokenDecimals(token);
+  const { decimals: tokenDecimals, source } = await getTokenDecimals(token);
   const amount = parseTokenAmountWithDecimals(
     document.getElementById('calculate-aed-amount').value,
     'Token amount',
     tokenDecimals
   );
   const aedAmount = await contract.calculateAedAmount(token, amount);
-  const decimalsNote = isFallback ? ' (fallback used)' : '';
   show(
     [
-      `Token decimals: ${tokenDecimals}${decimalsNote}`,
+      `Token decimals: ${tokenDecimals} (${source})`,
       `Token amount (display): ${ethers.formatUnits(amount, tokenDecimals)}`,
       `Token amount (base units): ${amount}`,
       `AED amount (2 decimals): ${ethers.formatUnits(aedAmount, 2)} AED`
@@ -608,9 +634,8 @@ async function handleCalculateAed() {
 
 async function handleTokenDecimals() {
   const token = parseTokenAddress(document.getElementById('token-decimals-token').value, 'Token');
-  const { decimals: tokenDecimals, isFallback } = await getTokenDecimals(token);
-  const decimalsNote = isFallback ? ' (fallback used)' : '';
-  show(`Token decimals: ${tokenDecimals}${decimalsNote}`);
+  const { decimals: tokenDecimals, source } = await getTokenDecimals(token);
+  show(`Token decimals: ${tokenDecimals} (${source})`);
 }
 
 function wireButton(id, handler) {
@@ -626,9 +651,35 @@ function wireButton(id, handler) {
   });
 }
 
+function renderTokenReference() {
+  const list = document.getElementById('token-reference-list');
+  if (!list) return;
+  list.innerHTML = '';
+  HARDCODED_TOKENS.forEach((token) => {
+    const item = document.createElement('li');
+    item.textContent = `${token.symbol} (${token.chain}) — ${token.address} (decimals: ${token.decimals})`;
+    list.appendChild(item);
+  });
+
+  const datalist = document.getElementById('payment-processor-token-list');
+  if (!datalist) return;
+  datalist.innerHTML = '';
+  const nativeOption = document.createElement('option');
+  nativeOption.value = 'native';
+  nativeOption.label = 'Native AVAX';
+  datalist.appendChild(nativeOption);
+  HARDCODED_TOKENS.forEach((token) => {
+    const option = document.createElement('option');
+    option.value = token.address;
+    option.label = `${token.symbol} (${token.chain})`;
+    datalist.appendChild(option);
+  });
+}
+
 function boot() {
   initLogs();
   renderContractAddress();
+  renderTokenReference();
   document.getElementById('connect-btn').addEventListener('click', () => {
     handleConnect().catch((err) => showError(`Error: ${err.message || err}`));
   });

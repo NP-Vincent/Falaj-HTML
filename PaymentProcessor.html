@@ -44,6 +44,18 @@
       min-width: 180px;
     }
     .action-row button { margin-right: 6px; }
+    .token-reference {
+      margin: 12px 0 18px;
+      padding: 10px 12px;
+      border: 1px solid #e5e7eb;
+      border-radius: 8px;
+      background: #f9fafb;
+      max-width: 920px;
+    }
+    .token-reference ul {
+      margin: 8px 0 0;
+      padding-left: 18px;
+    }
   </style>
 </head>
 <body>
@@ -63,7 +75,12 @@
         <a href="ValidatorStakingManager.html">ValidatorStakingManager</a>
       </nav>
       <p><strong>Network:</strong> Avalanche Fuji C-Chain (Chain ID: 43113)</p>
+      <div class="token-reference">
+        <strong>Known tokens (hardcoded decimals)</strong>
+        <ul id="token-reference-list"></ul>
+      </div>
       <p id="contract-address"></p>
+      <datalist id="payment-processor-token-list"></datalist>
       <button id="connect-btn">Connect Wallet</button>
       <button id="disconnect-btn" style="display:none;">Disconnect</button>
 
@@ -79,7 +96,7 @@
     </div>
     <div class="action-row">
       <strong>Deposit Stablecoin</strong>
-      <input id="deposit-stablecoin-token" placeholder="Token address" />
+      <input id="deposit-stablecoin-token" list="payment-processor-token-list" placeholder="Token address" />
       <input id="deposit-stablecoin-amount" placeholder="Amount (token decimals)" />
       <input id="deposit-stablecoin-recipient" placeholder="Recipient address" />
       <input id="deposit-stablecoin-ref" placeholder="Payment reference" />
@@ -87,7 +104,7 @@
     </div>
     <div class="action-row">
       <strong>Emergency Withdraw Token</strong>
-      <input id="emergency-token" placeholder="Token address" />
+      <input id="emergency-token" list="payment-processor-token-list" placeholder="Token address" />
       <input id="emergency-recipient" placeholder="Recipient address" />
       <input id="emergency-amount" placeholder="Amount (token decimals)" />
       <button id="emergency-withdraw-btn" disabled>Withdraw</button>
@@ -110,7 +127,7 @@
     </div>
     <div class="action-row">
       <strong>Set Exchange Rate</strong>
-      <input id="exchange-rate-token" placeholder="Token address or 'native'" />
+      <input id="exchange-rate-token" list="payment-processor-token-list" placeholder="Token address or 'native'" />
       <input id="exchange-rate-value" placeholder="Rate to AED (uint256)" />
       <button id="set-exchange-rate-btn" disabled>Set</button>
     </div>
@@ -173,7 +190,7 @@
     </div>
     <div class="action-row">
       <strong>Get Exchange Rate</strong>
-      <input id="exchange-rate-query-token" placeholder="Token address or 'native'" />
+      <input id="exchange-rate-query-token" list="payment-processor-token-list" placeholder="Token address or 'native'" />
       <button id="exchange-rate-btn" disabled>Get Rate</button>
     </div>
     <div class="action-row">
@@ -193,17 +210,17 @@
     </div>
     <div class="action-row">
       <strong>Token Supported?</strong>
-      <input id="token-supported-token" placeholder="Token address or 'native'" />
+      <input id="token-supported-token" list="payment-processor-token-list" placeholder="Token address or 'native'" />
       <button id="token-supported-btn" disabled>Check</button>
     </div>
     <div class="action-row">
       <strong>Token Decimals</strong>
-      <input id="token-decimals-token" placeholder="Token address or 'native'" />
+      <input id="token-decimals-token" list="payment-processor-token-list" placeholder="Token address or 'native'" />
       <button id="token-decimals-btn" disabled>Get Decimals</button>
     </div>
     <div class="action-row">
       <strong>Calculate AED Amount</strong>
-      <input id="calculate-aed-token" placeholder="Token address or 'native'" />
+      <input id="calculate-aed-token" list="payment-processor-token-list" placeholder="Token address or 'native'" />
       <input id="calculate-aed-amount" placeholder="Amount (token decimals)" />
       <button id="calculate-aed-btn" disabled>Calculate</button>
     </div>
