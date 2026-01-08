@@ -103,10 +103,11 @@ function setActionButtonsEnabled(enabled) {
 }
 
 function requireValue(value, label) {
-  if (!value) {
+  const sanitized = `${value ?? ''}`.trim();
+  if (!sanitized) {
     throw new Error(`${label} is required.`);
   }
-  return value.trim();
+  return sanitized;
 }
 
 function parseAddress(value, label) {
@@ -204,6 +205,31 @@ async function ensurePaymentProcessor() {
   return paymentProcessor;
 }
 
+async function resolveRecipient(inputId) {
+  const input = document.getElementById(inputId);
+  const raw = input ? input.value : '';
+  if (raw && raw.trim()) {
+    return parseAddress(raw, 'Recipient');
+  }
+  const signer = getSigner();
+  if (!signer) {
+    throw new Error('Recipient is required.');
+  }
+  const address = signer.getAddress ? await signer.getAddress() : signer.address;
+  logEvent('Recipient not provided. Using the connected wallet address.');
+  return address;
+}
+
+async function getSignerBalance(signer) {
+  const provider = getProvider();
+  const balanceProvider = provider?.getBalance ? provider : signer?.provider;
+  if (!balanceProvider?.getBalance) {
+    return null;
+  }
+  const address = signer.getAddress ? await signer.getAddress() : signer.address;
+  return balanceProvider.getBalance(address);
+}
+
 async function getTokenDecimals(tokenAddress) {
   if (tokenAddress === ethers.ZeroAddress) {
     return { decimals: 18, isFallback: false };
@@ -277,15 +303,13 @@ function renderContractAddress() {
 
 async function handleDepositAVAX() {
   const contract = await ensurePaymentProcessor();
-  const provider = getProvider();
   const signer = getSigner();
-  const recipient = parseAddress(document.getElementById('deposit-avax-recipient').value, 'Recipient');
+  const recipient = await resolveRecipient('deposit-avax-recipient');
   const paymentRef = requireValue(document.getElementById('deposit-avax-ref').value, 'Payment reference');
   const amount = parseEtherAmount(document.getElementById('deposit-avax-amount').value, 'AVAX amount');
-  if (signer && provider) {
-    const address = signer.getAddress ? await signer.getAddress() : signer.address;
-    const balance = await provider.getBalance(address);
-    if (amount > balance) {
+  if (signer) {
+    const balance = await getSignerBalance(signer);
+    if (balance !== null && amount > balance) {
       throw new Error(
         `Insufficient AVAX balance. Wallet balance: ${ethers.formatEther(
           balance
@@ -308,7 +332,7 @@ async function handleDepositStablecoin() {
     'Token amount',
     tokenDecimals
   );
-  const recipient = parseAddress(document.getElementById('deposit-stablecoin-recipient').value, 'Recipient');
+  const recipient = await resolveRecipient('deposit-stablecoin-recipient');
   const paymentRef = requireValue(document.getElementById('deposit-stablecoin-ref').value, 'Payment reference');
   if (isFallback) {
     logEvent(`Using fallback decimals (18). Verify token decimals for ${token}.`);
