@@ -61,5 +61,3 @@ These are standard ERC‑20 `approve` calls on the **BondToken** and **AEDStable
    - Once both deposits are in, status becomes `FULLY_FUNDED`.
 6. **Execution**
    - Either party (or anyone) calls `execute(id)` before expiry. The contract atomically transfers bonds to the buyer and AED to the seller.
-
-With these updates, the markdown guide in your canvas should clearly specify which contract each action corresponds to, along with the correct function names and the necessary permissions.
