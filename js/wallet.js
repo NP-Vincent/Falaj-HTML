@@ -8,20 +8,6 @@ let provider = null;
 let signer = null;
 let currentWallet = null;
 
-function getInjectedProvider() {
-  const injected = window.ethereum;
-  if (!injected) {
-    return null;
-  }
-  if (typeof injected.addListener !== 'function' && typeof injected.on === 'function') {
-    injected.addListener = injected.on.bind(injected);
-  }
-  if (typeof injected.removeListener !== 'function' && typeof injected.off === 'function') {
-    injected.removeListener = injected.off.bind(injected);
-  }
-  return injected;
-}
-
 export function getProvider() {
   return provider;
 }
@@ -31,9 +17,8 @@ export function getSigner() {
 }
 
 export async function connectWallet(wallet = 'metamask') {
-  const injectedProvider = getInjectedProvider();
-  if (wallet === 'metamask' && injectedProvider) {
-    provider = new ethers.BrowserProvider(injectedProvider);
+  if (wallet === 'metamask' && window.ethereum) {
+    provider = new ethers.BrowserProvider(window.ethereum);
     await provider.send('eth_requestAccounts', []);
     signer = await provider.getSigner();
     currentWallet = wallet;
@@ -49,23 +34,22 @@ export function disconnectWallet() {
 }
 
 export async function switchNetwork(network) {
-  const injectedProvider = getInjectedProvider();
-  if (!injectedProvider) {
+  if (!window.ethereum) {
     throw new Error('MetaMask not found');
   }
   const hex = ethers.toQuantity(network.chainId);
   try {
-    await injectedProvider.request({
+    await window.ethereum.request({
       method: 'wallet_switchEthereumChain',
       params: [{ chainId: hex }]
     });
   } catch (err) {
     if (err.code === 4902) {
-      await injectedProvider.request({
+      await window.ethereum.request({
         method: 'wallet_addEthereumChain',
         params: [{ chainId: hex, ...network }]
       });
-      await injectedProvider.request({
+      await window.ethereum.request({
         method: 'wallet_switchEthereumChain',
         params: [{ chainId: hex }]
       });
@@ -73,7 +57,7 @@ export async function switchNetwork(network) {
       throw err;
     }
   }
-  provider = new ethers.BrowserProvider(injectedProvider);
+  provider = new ethers.BrowserProvider(window.ethereum);
   signer = await provider.getSigner();
   return { provider, signer };
 }
@@ -89,19 +73,17 @@ export async function ensureCorrectNetwork(network) {
 }
 
 export function onAccountsChanged(handler) {
-  const injectedProvider = getInjectedProvider();
-  if (!injectedProvider?.on) {
+  if (!window.ethereum?.on) {
     return () => {};
   }
-  injectedProvider.on('accountsChanged', handler);
-  return () => injectedProvider.removeListener?.('accountsChanged', handler);
+  window.ethereum.on('accountsChanged', handler);
+  return () => window.ethereum.removeListener?.('accountsChanged', handler);
 }
 
 export function onChainChanged(handler) {
-  const injectedProvider = getInjectedProvider();
-  if (!injectedProvider?.on) {
+  if (!window.ethereum?.on) {
     return () => {};
   }
-  injectedProvider.on('chainChanged', handler);
-  return () => injectedProvider.removeListener?.('chainChanged', handler);
+  window.ethereum.on('chainChanged', handler);
+  return () => window.ethereum.removeListener?.('chainChanged', handler);
 }
