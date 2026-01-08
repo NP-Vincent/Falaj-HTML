@@ -8,6 +8,7 @@ This repository hosts lightweight HTML + JavaScript interfaces for interacting w
 - `IdentityRegistry.html` – a standalone interface for the `IdentityRegistry` contract.
 - `AEDStablecoin.html` – a standalone interface for the `AEDStablecoin` contract.
 - `BondToken.html` – a standalone interface for the `BondToken` contract.
+- `USDTBond.html` – a standalone interface for the `USDTBond` contract.
 - `DvPSettlement.html` – a standalone interface for the `DvPSettlement` contract.
 - `FeeDistribution.html` – a standalone interface for the `FeeDistribution` contract.
 - `PaymentProcessor.html` – a standalone interface for the `PaymentProcessor` contract.
@@ -31,6 +32,7 @@ Then open:
 - `http://localhost:8000/IdentityRegistry.html`
 - `http://localhost:8000/AEDStablecoin.html`
 - `http://localhost:8000/BondToken.html`
+- `http://localhost:8000/USDTBond.html`
 - `http://localhost:8000/DvPSettlement.html`
 - `http://localhost:8000/FeeDistribution.html`
 - `http://localhost:8000/PaymentProcessor.html`
@@ -95,6 +97,22 @@ Contract and network configuration lives in `js/config.js`:
 
 - `BOND_TOKEN_ADDRESS` – deployed contract address
 - `BOND_TOKEN_ABI_URL` – ABI location under `contract/abi/`
+
+## USDTBond interface
+
+The USDT Bond UI provides:
+
+- Wallet connect/disconnect
+- Bond summary (lifecycle state, issuer, ISIN, coupon, supply)
+- Write actions: transfer, approve, activate, mark matured/redeemed, freeze/unfreeze, pause
+- Read actions: balance, allowance, eligibility checks, transfer eligibility, time to maturity
+
+### Configuration
+
+Contract and network configuration lives in `js/config.js`:
+
+- `USDT_BOND_ADDRESS` – deployed contract address
+- `USDT_BOND_ABI_URL` – ABI location under `contract/abi/`
 
 ## DvPSettlement interface
 

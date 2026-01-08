@@ -31,6 +31,9 @@ export const IDENTITY_REGISTRY_ABI_URL = 'contract/abi/IdentityRegistry.json';
 export const BOND_TOKEN_ADDRESS = '0x67CEe293144b8d8f02A83C53E4d4CcA6D2552726';
 export const BOND_TOKEN_ABI_URL = 'contract/abi/BondToken.json';
 
+export const USDT_BOND_ADDRESS = '0x389c68C83409264E89178bf2B567CbFE48E0EbB7';
+export const USDT_BOND_ABI_URL = 'contract/abi/USDTBond.json';
+
 export const DVP_SETTLEMENT_ADDRESS = '0x99383F536F47961C3A1A427f8bbC89324Cc952D8';
 export const DVP_SETTLEMENT_ABI_URL = 'contract/abi/DvPSettlement.json';
 
