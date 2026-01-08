@@ -362,12 +362,13 @@ async function handleEmergencyWithdraw() {
   const contract = await ensurePaymentProcessor();
   const token = parseAddress(document.getElementById('emergency-token').value, 'Token');
   const to = parseAddress(document.getElementById('emergency-recipient').value, 'Recipient');
-  const { decimals: tokenDecimals } = await getTokenDecimals(token);
+  const { decimals: tokenDecimals, isFallback } = await getTokenDecimals(token);
   const amount = parseTokenAmountWithDecimals(
     document.getElementById('emergency-amount').value,
     'Token amount',
     tokenDecimals
   );
+  logEvent(`Token decimals: ${tokenDecimals}${isFallback ? ' (fallback used)' : ''}`);
   const tx = await contract.emergencyWithdrawToken(token, to, amount);
   show(`Emergency withdraw submitted: ${tx.hash}`);
   await tx.wait();
