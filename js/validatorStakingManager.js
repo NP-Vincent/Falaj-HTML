@@ -15,6 +15,7 @@ import {
 } from './wallet.js';
 import { initLogs, logEvent, logError } from './logs.js';
 import { fetchRoleValues } from './roles.js';
+import { parseDecimalAmount } from './amounts.js';
 
 const ethers = window.ethers;
 
@@ -139,21 +140,11 @@ function parseUint(value, label, allowZero = true) {
 }
 
 function parseTokenAmount(value, label) {
-  const sanitized = requireValue(value, label);
-  const amount = ethers.parseUnits(sanitized, 18);
-  if (amount <= 0n) {
-    throw new Error(`${label} must be greater than 0.`);
-  }
-  return amount;
+  return parseDecimalAmount(value, 18, label);
 }
 
 function parseEtherAmount(value, label) {
-  const sanitized = requireValue(value, label);
-  const amount = ethers.parseEther(sanitized);
-  if (amount <= 0n) {
-    throw new Error(`${label} must be greater than 0.`);
-  }
-  return amount;
+  return parseDecimalAmount(value, 18, label);
 }
 
 async function ensureStakingManager() {
