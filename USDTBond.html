@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta charset="UTF-8">
-  <title>Fee Distribution</title>
+  <title>USDT Bond</title>
   <link rel="stylesheet" href="css/logs.css" />
   <style>
     body { font-family: sans-serif; margin: 0; padding: 24px; }
@@ -28,7 +28,7 @@
       padding: 12px;
       border: 1px solid #ddd;
       border-radius: 8px;
-      max-width: 880px;
+      max-width: 840px;
     }
     .actions h4 { margin: 0 0 10px; }
     .actions h5 { margin: 16px 0 8px; color: #333; }
@@ -39,7 +39,8 @@
       margin-bottom: 12px;
       align-items: center;
     }
-    .action-row input {
+    .action-row input,
+    .action-row select {
       padding: 6px 8px;
       min-width: 180px;
     }
@@ -49,7 +50,7 @@
 <body>
   <div class="page-layout">
     <div class="page-main">
-      <h3 id="page-title">Fee Distribution</h3>
+      <h3 id="page-title">USDT Bond</h3>
       <nav class="page-nav">
         <a href="index.html">Home</a>
         <a href="IdentityRegistry.html">IdentityRegistry</a>
@@ -67,64 +68,54 @@
       <button id="disconnect-btn" style="display:none;">Disconnect</button>
 
   <section class="actions">
-    <h4>Fee Distribution Actions</h4>
+    <h4>USDT Bond Actions</h4>
     <h5>Write Actions</h5>
     <div class="action-row">
-      <strong>Collect Fees</strong>
-      <input id="collect-fees-amount" placeholder="AVAX amount" />
-      <button id="collect-fees-btn" disabled>Collect</button>
+      <strong>Transfer</strong>
+      <input id="transfer-to" placeholder="Recipient address" />
+      <input id="transfer-amount" placeholder="Amount" />
+      <button id="transfer-btn" disabled>Send</button>
     </div>
     <div class="action-row">
-      <strong>Distribute</strong>
-      <button id="distribute-btn" disabled>Distribute</button>
+      <strong>Approve</strong>
+      <input id="approve-spender" placeholder="Spender address" />
+      <input id="approve-amount" placeholder="Amount" />
+      <button id="approve-btn" disabled>Approve</button>
     </div>
     <div class="action-row">
-      <strong>Withdraw Provider Fees</strong>
-      <button id="withdraw-fees-btn" disabled>Withdraw</button>
+      <strong>Activate Bond</strong>
+      <button id="activate-btn" disabled>Activate</button>
     </div>
     <div class="action-row">
-      <strong>Withdraw Provider Fees To</strong>
-      <input id="withdraw-fees-to" placeholder="Recipient address" />
-      <button id="withdraw-fees-to-btn" disabled>Withdraw</button>
+      <strong>Mark Matured</strong>
+      <button id="mark-matured-btn" disabled>Mark Matured</button>
     </div>
     <div class="action-row">
-      <strong>Set Service Provider</strong>
-      <input id="service-provider-address" placeholder="Provider address" />
-      <button id="set-service-provider-btn" disabled>Set</button>
+      <strong>Mark Redeemed</strong>
+      <button id="mark-redeemed-btn" disabled>Mark Redeemed</button>
     </div>
     <div class="action-row">
-      <strong>Set Service Provider Fee (bps)</strong>
-      <input id="service-provider-fee" placeholder="Basis points" />
-      <button id="set-service-provider-fee-btn" disabled>Set</button>
+      <strong>Freeze Bond</strong>
+      <input id="freeze-reason" placeholder="Reason" />
+      <button id="freeze-btn" disabled>Freeze</button>
     </div>
     <div class="action-row">
-      <strong>Set Validator Manager</strong>
-      <input id="validator-manager-address" placeholder="Manager address" />
-      <button id="set-validator-manager-btn" disabled>Set</button>
-    </div>
-    <h5>Access Control</h5>
-    <div class="action-row">
-      <strong>Grant Role</strong>
-      <input id="grant-role-account" placeholder="Account address" />
-      <input id="grant-role-value" placeholder="Role (bytes32 or label)" />
-      <button id="grant-role-btn" disabled>Grant</button>
+      <strong>Unfreeze Bond</strong>
+      <select id="unfreeze-state">
+        <option value="1">ACTIVE</option>
+        <option value="2">MATURED</option>
+      </select>
+      <button id="unfreeze-btn" disabled>Unfreeze</button>
     </div>
     <div class="action-row">
-      <strong>Revoke Role</strong>
-      <input id="revoke-role-account" placeholder="Account address" />
-      <input id="revoke-role-value" placeholder="Role (bytes32 or label)" />
-      <button id="revoke-role-btn" disabled>Revoke</button>
-    </div>
-    <div class="action-row">
-      <strong>Renounce Role</strong>
-      <input id="renounce-role-account" placeholder="Account address" />
-      <input id="renounce-role-value" placeholder="Role (bytes32 or label)" />
-      <button id="renounce-role-btn" disabled>Renounce</button>
+      <strong>Pause Controls</strong>
+      <button id="pause-btn" disabled>Pause</button>
+      <button id="unpause-btn" disabled>Unpause</button>
     </div>
 
     <h5>Read Actions</h5>
     <div class="action-row">
-      <strong>Summary</strong>
+      <strong>Bond Summary</strong>
       <button id="summary-btn" disabled>Load</button>
     </div>
     <div class="action-row">
@@ -132,19 +123,30 @@
       <button id="roles-btn" disabled>Fetch</button>
     </div>
     <div class="action-row">
-      <strong>Distribution Stats</strong>
-      <button id="stats-btn" disabled>Load</button>
+      <strong>Balance Of</strong>
+      <input id="balance-account" placeholder="Account address" />
+      <button id="balance-btn" disabled>Get Balance</button>
     </div>
     <div class="action-row">
-      <strong>Role Admin</strong>
-      <input id="role-admin-value" placeholder="Role (bytes32 or label)" />
-      <button id="role-admin-btn" disabled>Get Admin</button>
+      <strong>Allowance</strong>
+      <input id="allowance-owner" placeholder="Owner address" />
+      <input id="allowance-spender" placeholder="Spender address" />
+      <button id="allowance-btn" disabled>Get Allowance</button>
     </div>
     <div class="action-row">
-      <strong>Has Role</strong>
-      <input id="has-role-account" placeholder="Account address" />
-      <input id="has-role-value" placeholder="Role (bytes32 or label)" />
-      <button id="has-role-btn" disabled>Check</button>
+      <strong>Eligible Investor?</strong>
+      <input id="eligible-account" placeholder="Investor address" />
+      <button id="eligible-btn" disabled>Check</button>
+    </div>
+    <div class="action-row">
+      <strong>Can Transfer?</strong>
+      <input id="can-transfer-from" placeholder="Sender address" />
+      <input id="can-transfer-to" placeholder="Recipient address" />
+      <button id="can-transfer-btn" disabled>Check</button>
+    </div>
+    <div class="action-row">
+      <strong>Time To Maturity</strong>
+      <button id="time-to-maturity-btn" disabled>Check</button>
     </div>
   </section>
 
@@ -178,6 +180,6 @@
   <script src="https://cdn.jsdelivr.net/npm/ethers@6/dist/ethers.umd.min.js"></script>
   <script type="module" src="js/config.js"></script>
   <script type="module" src="js/wallet.js"></script>
-  <script type="module" src="js/feeDistribution.js"></script>
+  <script type="module" src="js/usdtBond.js"></script>
 </body>
 </html>
