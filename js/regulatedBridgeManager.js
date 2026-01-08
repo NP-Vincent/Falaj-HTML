@@ -31,6 +31,8 @@ const ERC20_APPROVAL_ABI = [
   'function allowance(address owner, address spender) view returns (uint256)',
   'function approve(address spender, uint256 amount) returns (bool)'
 ];
+const NATIVE_TOKEN_DECIMALS = FALAJ_NETWORK.nativeCurrency.decimals;
+const NATIVE_TOKEN_SYMBOL = FALAJ_NETWORK.nativeCurrency.symbol;
 
 function normalizeAbi(abiData) {
   if (Array.isArray(abiData)) {
@@ -153,17 +155,21 @@ function parseTokenAmountWithDecimals(value, label, decimals) {
 
 async function getTokenDecimals(tokenAddress) {
   if (tokenAddress === ethers.ZeroAddress) {
-    return { decimals: 18, isFallback: false };
+    return {
+      decimals: NATIVE_TOKEN_DECIMALS,
+      isFallback: false,
+      source: `native (${NATIVE_TOKEN_SYMBOL})`
+    };
   }
   const signer = getSigner();
   const provider = signer?.provider ?? signer;
   const token = new ethers.Contract(tokenAddress, ERC20_APPROVAL_ABI, provider);
   try {
     const decimals = await token.decimals();
-    return { decimals: Number(decimals), isFallback: false };
+    return { decimals: Number(decimals), isFallback: false, source: 'onchain' };
   } catch (err) {
     logEvent(`Warning: failed to read token decimals for ${tokenAddress}. Using fallback of 18.`);
-    return { decimals: 18, isFallback: true };
+    return { decimals: 18, isFallback: true, source: 'fallback' };
   }
 }
 
@@ -250,13 +256,14 @@ async function handleReceiveTeleporterMessage() {
 async function handleRescueTokens() {
   const contract = await ensureBridgeManager();
   const token = parseTokenAddress(document.getElementById('rescue-token').value, 'Token');
-  const { decimals: tokenDecimals, isFallback } = await getTokenDecimals(token);
+  const { decimals: tokenDecimals, isFallback, source } = await getTokenDecimals(token);
   const amount = parseTokenAmountWithDecimals(
     document.getElementById('rescue-amount').value,
     'Token amount',
     tokenDecimals
   );
-  logEvent(`Token decimals: ${tokenDecimals}${isFallback ? ' (fallback used)' : ''}`);
+  const sourceLabel = source ? ` (${source})` : '';
+  logEvent(`Token decimals: ${tokenDecimals}${sourceLabel}${isFallback ? ' (fallback used)' : ''}`);
   const tx = await contract.rescueTokens(token, amount);
   show(`Rescue submitted: ${tx.hash}`);
   await tx.wait();
