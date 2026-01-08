@@ -8,31 +8,18 @@ let provider = null;
 let signer = null;
 let currentWallet = null;
 
-function getInjectedProvider(wallet = 'metamask') {
+function getInjectedProvider() {
   const injected = window.ethereum;
   if (!injected) {
     return null;
   }
-  const candidates = Array.isArray(injected.providers) ? injected.providers : [injected];
-  const preferred = candidates.find((provider) =>
-    wallet === 'metamask' ? provider.isMetaMask : provider.isTrust || provider.isTrustWallet
-  );
-  const selected = preferred || candidates.find((provider) => typeof provider.request === 'function');
-  if (!selected) {
-    return null;
+  if (typeof injected.addListener !== 'function' && typeof injected.on === 'function') {
+    injected.addListener = injected.on.bind(injected);
   }
-  const hasAddListener = typeof selected.addListener === 'function';
-  const hasRemoveListener = typeof selected.removeListener === 'function';
-  if (hasAddListener && hasRemoveListener) {
-    return selected;
+  if (typeof injected.removeListener !== 'function' && typeof injected.off === 'function') {
+    injected.removeListener = injected.off.bind(injected);
   }
-  return {
-    request: selected.request?.bind(selected),
-    on: selected.on?.bind(selected),
-    off: selected.off?.bind(selected),
-    addListener: (event, handler) => selected.on?.(event, handler),
-    removeListener: (event, handler) => selected.off?.(event, handler)
-  };
+  return injected;
 }
 
 export function getProvider() {
@@ -44,7 +31,7 @@ export function getSigner() {
 }
 
 export async function connectWallet(wallet = 'metamask') {
-  const injectedProvider = getInjectedProvider(wallet);
+  const injectedProvider = getInjectedProvider();
   if (wallet === 'metamask' && injectedProvider) {
     provider = new ethers.BrowserProvider(injectedProvider);
     await provider.send('eth_requestAccounts', []);
